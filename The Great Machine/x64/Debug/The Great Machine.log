@@ -1,0 +1,4 @@
+﻿  main.cpp
+C:\dev\projects\CodeJam2020\The Great Machine\main.cpp(25,1): warning C4267: 'argument': conversion from 'size_t' to 'int32_t', possible loss of data
+C:\dev\projects\CodeJam2020\The Great Machine\main.cpp(27,1): warning C4267: 'argument': conversion from 'size_t' to 'int32_t', possible loss of data
+  The Great Machine.vcxproj -> C:\dev\projects\CodeJam2020\The Great Machine\x64\Debug\The Great Machine.exe

@@ -1,0 +1,10 @@
+﻿  main.cpp
+C:\dev\projects\CodeJam2020\The Great Machine\main.cpp(59,7): warning C4215: nonstandard extension used: long float
+C:\dev\projects\CodeJam2020\The Great Machine\main.cpp(32,1): warning C4267: 'argument': conversion from 'size_t' to 'int32_t', possible loss of data
+C:\dev\projects\CodeJam2020\The Great Machine\main.cpp(34,1): warning C4267: 'argument': conversion from 'size_t' to 'int32_t', possible loss of data
+  Generating code
+  2 of 1259 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    1 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  The Great Machine.vcxproj -> C:\dev\projects\CodeJam2020\The Great Machine\x64\Release\The Great Machine.exe
