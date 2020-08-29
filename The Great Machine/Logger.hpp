@@ -1,5 +1,5 @@
-#ifndef F4MPSERVER_LOGGER_H_
-#define F4MPSERVER_LOGGER_H_
+#ifndef GREATMACHINE_LOGGER_H_
+#define GREATMACHINE_LOGGER_H_
 
 #include <filesystem>
 #include <iostream>
