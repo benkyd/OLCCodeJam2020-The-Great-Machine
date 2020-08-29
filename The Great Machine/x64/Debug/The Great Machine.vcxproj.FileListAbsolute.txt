@@ -1,2 +1,0 @@
-C:\dev\projects\CodeJam2020\The Great Machine\x64\Debug\The Great Machine.exe
-C:\dev\projects\CodeJam2020\The Great Machine\x64\Debug\The Great Machine.pdb
