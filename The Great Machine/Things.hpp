@@ -32,18 +32,21 @@ namespace EEntity
 		Boss
 	};
 
-	enum Item
+	namespace EItem
 	{
-		None,
-		Sword
-	};
+		enum Item
+		{
+			None,
+			Sword
+		};
 
-	// Fixed items can have states #door open / closed
-	enum FixedItem
-	{
-		Torch,
-		Door
-	};
+		// Fixed items can have states #door open / closed
+		enum FixedItem
+		{
+			Torch,
+			Door
+		};
+	}
 }
 
 class Entity
@@ -56,13 +59,14 @@ public:
 class Item : public Entity
 {
 public: 
-	EEntity::Item Item;
+	EEntity::EItem::Item Item;
 };
 
 class FixedItem : public Entity
 {
-	EEntity::FixedItem Item;
+	EEntity::EItem::FixedItem Item;
 };
+
 
 class Tile
 {
@@ -70,6 +74,12 @@ public:
 	olc::vd2d Coords;
 	ETile::Type Type;
 	ETile::State State;
+	
+	olc::vd2d SpriteTextureMask;
+	olc::Sprite* SpriteMap;
+
+	virtual void Update(float fTime);
+	void Draw(olc::PixelGameEngine* engine);
 };
 
 #endif
