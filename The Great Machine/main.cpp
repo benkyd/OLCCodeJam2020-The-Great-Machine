@@ -3,21 +3,31 @@
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.hpp"
 
+#include "Dungeon.hpp"
+
 class Game : public olc::PixelGameEngine
 {
-public:
+private:
 
 	Logger& _Logger;
+	Dungeon* _Dungeon;
+
+	olc::Sprite* _TileSet;
 
 public:
 	Game()
 		: _Logger(Logger::getInstance())
 	{
-		sAppName = "Ben Kyd and The Great Machine";
+		sAppName = "The Great Machine";
 	}
 
 	bool OnUserCreate() override
 	{
+		_Dungeon = new Dungeon();
+		_Dungeon->Generate();
+
+		_TileSet = new olc::Sprite("./res/dungeon_tileset.png");
+
 		return true;
 	}
 
@@ -28,7 +38,6 @@ public:
 			m_DeltaFade -= fTime * 200.0f;
 			if (m_DeltaFade < 0.1f) m_DeltaFade = 0.0f;
 		}
-		SetPixelMode(olc::Pixel::ALPHA);
 		DrawString((ScreenWidth() / 2) - (7 * 7) * (std::string("The Great Machine").length() / 2), ScreenHeight() / 2, "The Great Machine", olc::Pixel(255, 255, 255, static_cast<int>(m_DeltaFade)), 6);
 		DrawString(5, ScreenHeight() - 15, "Powered by the OLC Pixel Game Engine", olc::Pixel(255, 255, 255, static_cast<int>(m_DeltaFade)));
 		DrawString(ScreenWidth() - (8 * (std::string("Copyright Benjamin Kyd 2020").length())) - 5, ScreenHeight() - 15, "Copyright Benjamin Kyd 2020", olc::Pixel(255, 255, 255, static_cast<int>(m_DeltaFade)));
@@ -36,20 +45,24 @@ public:
 
 	bool OnUserUpdate(float fTime) override
 	{
+		SetPixelMode(olc::Pixel::ALPHA);
 		m_TimeAccumilator += fTime;
-		Clear(olc::BLACK);
+
+		Clear({ 38, 36, 40 });
 		
-		_Logger.Debug(m_TimeAccumilator);
+		//_Logger.Debug(m_TimeAccumilator);
 
-		if (m_TimeAccumilator < 4.0f)
-		{
-			DisplayTitle(fTime);
-			return true;
-		}
+		//if (m_TimeAccumilator < 4.0f)
+		//{
+		//	DisplayTitle(fTime);
+		//	return true;
+		//}
 
+		// _Dungeon->Input(this);
 
+		// _Dungeon->Draw(this);
 
-
+		DrawSprite({ 0, 0 }, _TileSet);
 
 		return true;
 	}
@@ -69,7 +82,7 @@ int main()
 	_Logger.InitializeLoggingThread();
 
 	Game _Game;
-	_Game.Construct(1280, 720, 1, 1);
+	_Game.Construct(1280, 720, 1, 1, false, true);
 	_Logger.Info("Game Constructed");
 	
 	if (!_Game.Start())

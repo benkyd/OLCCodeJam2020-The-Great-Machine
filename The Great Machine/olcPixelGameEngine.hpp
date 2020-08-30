@@ -460,8 +460,35 @@ namespace olc
 	typedef v2d_generic<float> vf2d;
 	typedef v2d_generic<double> vd2d;
 #endif
+}
 
+namespace std
+{
+	template <>
+	struct hash<olc::vi2d>
+	{
+		std::size_t operator()(const olc::vi2d& k) const
+		{
+			uint64_t h1 = k.x << 31;
+			uint64_t h2 = k.y << 31;
+			
+			return h1 ^ h2;
+		}
+	};
+	template <>
+	struct hash<olc::vf2d>
+	{
+		std::size_t operator()(const olc::vf2d& k) const
+		{
+			uint64_t h1 = static_cast<int>(k.x) << 31;
+			uint64_t h2 = static_cast<int>(k.y) << 31;
 
+			return h1 ^ h2;
+		}
+	};
+}
+
+namespace olc {
 
 	// O------------------------------------------------------------------------------O
 	// | olc::HWButton - Represents the state of a hardware button (mouse/key/joy)    |

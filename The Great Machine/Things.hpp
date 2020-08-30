@@ -55,8 +55,10 @@ namespace EEntity
 class Entity
 {
 public:
-	olc::vd2d Coords;
+	olc::vi2d Coords;
 	EEntity::Type Type;
+	olc::vf2d SpriteTextureMask;
+	olc::Sprite* SpriteMap;
 };
 
 class Item : public Entity
@@ -82,11 +84,11 @@ public:
 class Tile
 {
 public:
-	olc::vd2d Coords;
+	olc::vi2d Coords;
 	ETile::Type Type;
 	ETile::State State;
 	
-	olc::vd2d SpriteTextureMask;
+	olc::vf2d SpriteTextureMask;
 	olc::Sprite* SpriteMap;
 
 	virtual void Update(float fTime);
