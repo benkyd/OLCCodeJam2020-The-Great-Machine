@@ -2,8 +2,11 @@
 #define GREATMACHINE_THINGS_H_
 
 #include <optional>
+#include <array>
 
 #include "olcPixelGameEngine.hpp"
+
+class Camera;
 
 namespace ETile
 {
@@ -64,7 +67,15 @@ public:
 
 class FixedItem : public Entity
 {
+public:
 	EEntity::EItem::FixedItem Item;
+};
+
+
+class Playable : public Entity
+{
+public:
+	std::array<Item*, 6> Inventory;
 };
 
 
@@ -79,7 +90,7 @@ public:
 	olc::Sprite* SpriteMap;
 
 	virtual void Update(float fTime);
-	void Draw(olc::PixelGameEngine* engine);
+	void Draw(olc::PixelGameEngine* engine, Camera* camera);
 };
 
 #endif
