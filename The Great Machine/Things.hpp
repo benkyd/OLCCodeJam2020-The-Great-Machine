@@ -81,6 +81,11 @@ public:
 };
 
 
+class TileDictionary
+{
+
+};
+
 class Tile
 {
 public:
@@ -92,7 +97,6 @@ public:
 	olc::Sprite* SpriteMap;
 
 	virtual void Update(float fTime);
-	void Draw(olc::PixelGameEngine* engine, Camera* camera);
 };
 
 #endif

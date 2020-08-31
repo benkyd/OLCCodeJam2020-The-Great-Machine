@@ -28,9 +28,11 @@ public:
 	Playable* Player;
 	Camera* ActiveCamera;
 
-	std::unordered_map<olc::vi2d, Tile*> DungeonTiles;
+	std::vector<Tile*> DungeonTiles;
 	std::unordered_map<olc::vf2d, Entity*> Entities; // key here could be room?
 	std::unordered_map<olc::vf2d, FixedItem*> FixedItems;
+
+	olc::Sprite* TileSet;
 
 	~Dungeon();
 };

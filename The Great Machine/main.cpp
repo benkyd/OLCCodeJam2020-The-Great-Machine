@@ -12,8 +12,6 @@ private:
 	Logger& _Logger;
 	Dungeon* _Dungeon;
 
-	olc::Sprite* _TileSet;
-
 public:
 	Game()
 		: _Logger(Logger::getInstance())
@@ -25,8 +23,6 @@ public:
 	{
 		_Dungeon = new Dungeon();
 		_Dungeon->Generate();
-
-		_TileSet = new olc::Sprite("./res/dungeon_tileset.png");
 
 		return true;
 	}
@@ -50,17 +46,17 @@ public:
 
 		Clear({ 38, 36, 40 });
 		
-		//_Logger.Debug(m_TimeAccumilator);
+		_Logger.Debug(m_TimeAccumilator);
 
-		//if (m_TimeAccumilator < 4.0f)
-		//{
-		//	DisplayTitle(fTime);
-		//	return true;
-		//}
+		if (m_TimeAccumilator < 4.0f)
+		{
+			DisplayTitle(fTime);
+			return true;
+		}
 
-		// _Dungeon->Input(this);
+		_Dungeon->Input(this);
 
-		// _Dungeon->Draw(this);
+		_Dungeon->Draw(this);
 
 		DrawSprite({ 0, 0 }, _TileSet);
 
