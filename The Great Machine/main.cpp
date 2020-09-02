@@ -54,7 +54,9 @@ public:
 		//	return true;
 		//}
 
-		_Dungeon->Input(this);
+		_Dungeon->Input(this, fTime);
+
+		_Dungeon->Update(fTime);
 
 		_Dungeon->Draw(this);
 

@@ -8,7 +8,7 @@ class Entity;
 class Camera
 {
 public:
-	olc::vf2d Coords;
+	olc::vi2d Coords;
 	olc::vi2d ViewPort;
 
 	void Update(float fTime);

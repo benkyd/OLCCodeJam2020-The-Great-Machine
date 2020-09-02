@@ -2,6 +2,8 @@
 
 #include "Things.hpp"
 
+#include "Logger.hpp"
+
 void Camera::Update(float fTime)
 {
 	if (_Track == nullptr) return;

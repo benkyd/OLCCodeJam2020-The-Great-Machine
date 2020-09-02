@@ -5,6 +5,8 @@
 
 #include "olcPixelGameEngine.hpp"
 
+#include "Logger.hpp"
+
 class Camera;
 
 class Tile;
@@ -22,7 +24,7 @@ public:
 	void Generate();
 	void SpawnEntity(Entity* entity);
 
-	void Input(olc::PixelGameEngine* engine);
+	void Input(olc::PixelGameEngine* engine, float fTime);
 	void Update(float fTime);
 	void Draw(olc::PixelGameEngine* engine);
 
@@ -31,7 +33,7 @@ public:
 
 	int DungeonWidth;
 	int DungeonHeight;
-	std::vector<Tile*> DungeonTiles;
+	std::unordered_map<olc::vi2d, Tile*> DungeonTiles;
 	std::unordered_map<olc::vf2d, Entity*> Entities; // key here could be room?
 	std::unordered_map<olc::vf2d, FixedItem*> FixedItems;
 
@@ -39,6 +41,9 @@ public:
 	olc::Sprite* TileSet;
 
 	~Dungeon();
+
+private:
+	Logger& _Logger;
 };
 
 #endif
