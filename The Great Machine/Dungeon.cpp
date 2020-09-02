@@ -1,5 +1,7 @@
 #include "Dungeon.hpp"
 
+#include <algorithm>
+
 #include "Things.hpp"
 #include "Camera.hpp"
 #include "Logger.hpp"
@@ -26,8 +28,10 @@ void Dungeon::Generate()
 
     TileSetDictionary = new TileDictionary();
     TileSetDictionary->Register();
-	TileSet = new olc::Sprite("res/dungeon_tileset.png");
-    _Logger.Debug("Texture Loaded: ", TileSet, " ", TileSet->width, " ", TileSet->height);
+
+    TileSet = new olc::Renderable();
+    TileSet->Load("res/dungeon_tileset.png");
+    _Logger.Debug("Texture Loaded: ", TileSet, " ", TileSet->Sprite()->width, " ", TileSet->Sprite()->height);
 
     DungeonWidth = 0;
     DungeonHeight = 0;
@@ -50,7 +54,7 @@ void Dungeon::Generate()
 
     int directionChance = 5;
     int roomChance = 5;
-    int dungeonMinSize = 2000;
+    int dungeonMinSize = 5000;
 
     struct Agent
     {
@@ -59,7 +63,7 @@ void Dungeon::Generate()
     };
 
     Agent* agent = new Agent();
-    agent->x = 20; agent->y = 10;
+    agent->x = 0; agent->y = 0;
     agent->direction = rand() % 4;
 
     _Logger.Debug("Agent ", agent->x, " ", agent->y, " ", agent->direction);
@@ -70,6 +74,8 @@ void Dungeon::Generate()
                 return;
         tiles.push_back({ x, y });
     };
+
+    addTile(0, 0);
 
     while (tiles.size() < dungeonMinSize)
     {
@@ -82,7 +88,7 @@ void Dungeon::Generate()
         }
         addTile(agent->x, agent->y);
         
-        if (rand() % 100 < directionChance)
+        if (rand() % 200 < directionChance)
         {
             agent->direction = rand() % 4;
             directionChance = 0;
@@ -92,7 +98,7 @@ void Dungeon::Generate()
             directionChance += 5;
         }
 
-        if (rand() % 200 < roomChance)
+        if (rand() % 300 < roomChance)
         {
             Room* room = randomRoom(agent->x, agent->y);
             for (int x = room->x; x < room->w + room->x; x++)
@@ -111,13 +117,65 @@ void Dungeon::Generate()
     {
         if (DungeonWidth <= tile.x) DungeonWidth = tile.x;
         if (DungeonHeight <= tile.y) DungeonHeight = tile.y;
-        Tile* t = new Tile(tile, ETile::Type::OneByOne, ETile::State::Default);
-        _Logger.Debug(t->Coords.x, " ", t->Coords.y);
+
+        ETile::Type tileType = rand() % 100 > 1 ? ETile::Type::Floor : ETile::Type::FloorV1;
+
+        auto DoesTileExist = [&](olc::vi2d tile)
+        {
+            return std::find(tiles.begin(), tiles.end(), tile) != tiles.end();
+        };
+
+        bool tileBelow = DoesTileExist({ tile.x, tile.y + 1 });
+        bool tileAbove = DoesTileExist({ tile.x, tile.y - 1 });
+        bool tileLeft  = DoesTileExist({ tile.x - 1, tile.y });
+        bool tileRight = DoesTileExist({ tile.x + 1, tile.y });
+
+        if (!tileAbove)
+            tileType = ETile::Type::WallU;
+        if (!tileRight)
+            tileType = ETile::Type::WallR;
+        if (!tileBelow)
+            tileType = ETile::Type::WallD;
+        if (!tileLeft)
+            tileType = ETile::Type::WallL;
+
+        if (!tileAbove && !tileBelow)
+            tileType = ETile::Type::PathAcross;
+        if (!tileRight && !tileLeft)
+            tileType = ETile::Type::PathUp;
+
+        if (!tileAbove && !tileLeft)
+            tileType = ETile::Type::WallTLCorner;
+        if (!tileAbove && !tileRight)
+            tileType = ETile::Type::WallTRCorner;
+        if (!tileBelow && !tileLeft)
+            tileType = ETile::Type::WallBLCorner;
+        if (!tileBelow && !tileRight)
+            tileType = ETile::Type::WallBRCorner;
+
+        if (!tileAbove && !tileBelow && !tileRight)
+            tileType = ETile::Type::PathRight;
+        if (!tileAbove && !tileBelow && !tileLeft)
+            tileType = ETile::Type::PathLeft;
+        if (!tileRight && !tileLeft && !tileAbove)
+            tileType = ETile::Type::PathTop;
+        if (!tileRight && !tileLeft && !tileBelow)
+            tileType = ETile::Type::PathBottom;
+
+        // Is the tile below free? if so, make it 3D
+        if (!tileBelow)
+        {
+            Tile* psuedo3DTile = new Tile({ tile.x, tile.y + 1 }, 
+                ETile::Type::ThreeDStandard, ETile::State::Default);
+            DungeonTiles[psuedo3DTile->Coords] = psuedo3DTile;
+        }
+
+        Tile* t = new Tile(tile, tileType, ETile::State::Default);
         DungeonTiles[t->Coords] = t;
     }
 
-    // Empty rooms 
-
+    // DungeonRenderTarget = new olc::Renderable();
+    // DungeonRenderTarget->Create(DungeonWidth * 32, DungeonHeight * 32);
 }
 
 void Dungeon::SpawnEntity(Entity* entity)
@@ -128,13 +186,13 @@ void Dungeon::SpawnEntity(Entity* entity)
 void Dungeon::Input(olc::PixelGameEngine* engine, float fTime)
 {
     if (engine->GetKey(olc::W).bHeld)
-        Player->Coords.y += 1 / fTime;
+        Player->Coords.y -= 1000 * fTime;
     if (engine->GetKey(olc::A).bHeld)
-        Player->Coords.x += 1 / fTime;
+        Player->Coords.x -= 1000 * fTime;
     if (engine->GetKey(olc::S).bHeld)
-        Player->Coords.y -= 1 / fTime;
+        Player->Coords.y += 1000 * fTime;
     if (engine->GetKey(olc::D).bHeld)
-        Player->Coords.x -= 1 / fTime;
+        Player->Coords.x += 1000 * fTime;
 }
 
 void Dungeon::Update(float fTime)
@@ -144,21 +202,18 @@ void Dungeon::Update(float fTime)
 
 void Dungeon::Draw(olc::PixelGameEngine* engine)
 {
-    // find tile in map
-    auto DrawFrom = [&](int tile) {
-        // mod w for x int div y - JavidX9
-        int w = tile % (TileSet->width / 16);
-        int h = tile / (TileSet->width / 16);
-        return olc::vi2d(w * 16, h * 16);
-    };
-    
-    auto index = [](int x, int y, int depth) -> int { return x + depth * y; };
-
     for (std::pair<olc::vi2d, Tile*> tile : DungeonTiles)
     {
-        engine->DrawPartialSprite({ (tile.first.x * 16) + ActiveCamera->Coords.x, (tile.first.y * 16) + ActiveCamera->Coords.y }, TileSet,
-            TileSetDictionary->Dictionary[tile.second->Type], { 16, 16 }, 1);
+        // TODO: Perform culling
+        engine->DrawPartialDecal({ static_cast<float>((tile.first.x * 64) - ActiveCamera->Coords.x), static_cast<float>((tile.first.y * 64) - ActiveCamera->Coords.y) },
+            { 64, 64 }, TileSet->Decal(), TileSetDictionary->Dictionary[tile.second->Type], { 16, 16 });
     }
+
+
+    // Draw character
+    engine->DrawPartialDecal({ static_cast<float>(Player->Coords.x - ActiveCamera->Coords.x), static_cast<float>(Player->Coords.y - ActiveCamera->Coords.y) },
+        { 64, 64 }, TileSet->Decal(), { 143, 130 }, { 16, 16 });
+
 }
 
 Dungeon::~Dungeon()

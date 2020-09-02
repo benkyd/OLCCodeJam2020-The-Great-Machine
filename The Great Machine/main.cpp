@@ -48,11 +48,11 @@ public:
 		
 		// _Logger.Debug(m_TimeAccumilator);
 
-		//if (m_TimeAccumilator < 4.0f)
-		//{
-		//	DisplayTitle(fTime);
-		//	return true;
-		//}
+		if (m_TimeAccumilator < 4.0f)
+		{
+			DisplayTitle(fTime);
+			return true;
+		}
 
 		_Dungeon->Input(this, fTime);
 
@@ -78,7 +78,7 @@ int main()
 	_Logger.InitializeLoggingThread();
 
 	Game _Game;
-	_Game.Construct(1280, 720, 1, 1, false, true);
+	_Game.Construct(1280, 720, 1, 1, false, false);
 	_Logger.Info("Game Constructed");
 	
 	if (!_Game.Start())

@@ -91,13 +91,21 @@ namespace EEntity
 	}
 }
 
+// AABB
+class HitBox
+{
+public:
+	int x, y, w, h;
+};
+
 class Entity
 {
 public:
 	olc::vi2d Coords;
 	EEntity::Type Type;
+	HitBox* AABBHitBox;
 	olc::vf2d SpriteTextureMask;
-	olc::Sprite* SpriteMap;
+	olc::Renderable* SpriteMap;
 };
 
 class Item : public Entity
@@ -141,7 +149,7 @@ public:
 	ETile::State State;
 	
 	//olc::vf2d SpriteTextureMask;
-	//olc::Sprite* SpriteMap;
+	//olc::Renderable* SpriteMap;
 
 	virtual void Update(float fTime);
 };

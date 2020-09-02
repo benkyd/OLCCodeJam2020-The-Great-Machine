@@ -38,7 +38,9 @@ public:
 	std::unordered_map<olc::vf2d, FixedItem*> FixedItems;
 
 	TileDictionary* TileSetDictionary;
-	olc::Sprite* TileSet;
+	olc::Renderable* TileSet;
+
+	// olc::Renderable* DungeonRenderTarget;
 
 	~Dungeon();
 

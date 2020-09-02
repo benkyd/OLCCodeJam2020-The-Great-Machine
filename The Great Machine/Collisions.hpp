@@ -1,0 +1,6 @@
+#ifndef GREATMACHINE_COLLISIONS_H_
+#define GREATMACHINE_COLLISIONS_H_
+
+
+
+#endif
