@@ -8,13 +8,52 @@
 
 class Camera;
 
+namespace ETexture
+{
+	enum Type
+	{
+		EightByEight,
+		SixteenBySixteen
+	};
+}
+
 namespace ETile
 {
 	enum Type
 	{
-		Backdrop,
+		None,
 		Floor,
-		Wall
+		FloorV1,
+		WallL,
+		WallR,
+		WallU,
+		WallD,
+		WallTRCorner,
+		WallTLCorner,
+		WallBRCorner,
+		WallBLCorner,
+		PathUp,
+		PathAcross,
+		PathTop,
+		PathBottom,
+		PathLeft,
+		PathRight,
+		PathTRCorner,
+		PathTLCorner,
+		PathBRCorner,
+		PathBLCorner,
+		OneByOne,
+		DoorOpen,
+		DoorClosed,
+		DoorPortcullis,
+		DoorOpenTop,
+		DoorClosedTop,
+		DoorPortcullisTop,
+
+		ThreeDStandard,
+		ThreeDSolid,
+		ThreeDSpike,
+		ThreeDSpikeBottom
 	};
 
 	enum State
@@ -83,18 +122,26 @@ public:
 
 class TileDictionary
 {
-
+public:
+	void Register();
+	std::map<ETile::Type, olc::vi2d> Dictionary;
 };
 
 class Tile
 {
 public:
+	Tile(olc::vi2d coords, ETile::Type type, ETile::State state)
+		: Coords(coords)
+		, Type(type)
+		, State(state)
+	{ }
+
 	olc::vi2d Coords;
 	ETile::Type Type;
 	ETile::State State;
 	
-	olc::vf2d SpriteTextureMask;
-	olc::Sprite* SpriteMap;
+	//olc::vf2d SpriteTextureMask;
+	//olc::Sprite* SpriteMap;
 
 	virtual void Update(float fTime);
 };

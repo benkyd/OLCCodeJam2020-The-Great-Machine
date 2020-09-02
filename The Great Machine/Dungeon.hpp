@@ -11,6 +11,7 @@ class Tile;
 class Entity;
 class Playable;
 class FixedItem;
+class TileDictionary;
 
 // Single level dungeon, no need for fancy levels
 class Dungeon
@@ -28,10 +29,13 @@ public:
 	Playable* Player;
 	Camera* ActiveCamera;
 
+	int DungeonWidth;
+	int DungeonHeight;
 	std::vector<Tile*> DungeonTiles;
 	std::unordered_map<olc::vf2d, Entity*> Entities; // key here could be room?
 	std::unordered_map<olc::vf2d, FixedItem*> FixedItems;
 
+	TileDictionary* TileSetDictionary;
 	olc::Sprite* TileSet;
 
 	~Dungeon();
