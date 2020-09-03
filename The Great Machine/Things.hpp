@@ -95,7 +95,7 @@ class HitBox;
 class Entity
 {
 public:
-	olc::vi2d Coords;
+	olc::vf2d Coords;
 	EEntity::Type Type;
 	HitBox* AABBHitBox;
 	olc::vf2d SpriteTextureMask;

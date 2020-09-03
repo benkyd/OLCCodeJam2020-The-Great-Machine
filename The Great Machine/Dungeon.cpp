@@ -174,7 +174,7 @@ void Dungeon::Generate()
         DungeonTiles[t->Coords] = t;
     }
 
-    DungeonRenderTarget = new olc::Renderable();
+    //DungeonRenderTarget = new olc::Renderable();
     //DungeonRenderTarget->Create(DungeonWidth * TileSize, DungeonHeight * TileSize);
     //DungeonRenderTarget->Create(200, 200);
 }
@@ -187,24 +187,27 @@ void Dungeon::SpawnEntity(Entity* entity)
 void Dungeon::Input(olc::PixelGameEngine* engine, float fTime)
 {
     if (engine->GetKey(olc::W).bHeld)
-        Player->Coords.y -= static_cast<int>(static_cast<float>(TileSize) * (fTime * 10.0f));
+        Player->Coords.y -= static_cast<float>(TileSize) * (fTime * 10.0f);
     if (engine->GetKey(olc::A).bHeld)
-        Player->Coords.x -= static_cast<int>(static_cast<float>(TileSize) * (fTime * 10.0f));
+        Player->Coords.x -= static_cast<float>(TileSize) * (fTime * 10.0f);
     if (engine->GetKey(olc::S).bHeld)
-        Player->Coords.y += static_cast<int>(static_cast<float>(TileSize) * (fTime * 10.0f));
+        Player->Coords.y += static_cast<float>(TileSize) * (fTime * 10.0f);
     if (engine->GetKey(olc::D).bHeld)
-        Player->Coords.x += static_cast<int>(static_cast<float>(TileSize) * (fTime * 10.0f));
+        Player->Coords.x += static_cast<float>(TileSize) * (fTime * 10.0f);
 }
 
 void Dungeon::Update(float fTime)
 {
+
+
+
     ActiveCamera->Update(fTime);
 }
 
 void Dungeon::Draw(olc::PixelGameEngine* engine)
 {
     //int 
-    engine->SetDrawTarget(DungeonRenderTarget->Sprite());
+    //engine->SetDrawTarget(DungeonRenderTarget->Sprite());
     for (std::pair<olc::vi2d, Tile*> tile : DungeonTiles)
     {
         // TODO: Perform culling
@@ -213,8 +216,8 @@ void Dungeon::Draw(olc::PixelGameEngine* engine)
             { static_cast<float>(TileSize), static_cast<float>(TileSize) }, TileSet->Decal(), TileSetDictionary->Dictionary[tile.second->Type], { 16, 16 });
     }
 
-    engine->SetDrawTarget(1);
-    engine->DrawSprite({ 0, 0 }, DungeonRenderTarget->Sprite());
+    //engine->SetDrawTarget(1);
+    //engine->DrawSprite({ 0, 0 }, DungeonRenderTarget->Sprite());
 
     // Draw character
     engine->DrawPartialDecal({ static_cast<float>(Player->Coords.x - ActiveCamera->Coords.x), static_cast<float>(Player->Coords.y - ActiveCamera->Coords.y) },
@@ -224,6 +227,15 @@ void Dungeon::Draw(olc::PixelGameEngine* engine)
 
 Dungeon::~Dungeon()
 {
+    delete Player;
+    delete ActiveCamera;
+    delete TileSetDictionary;
+    delete TileSet;
+    delete DungeonRenderTarget;
     for (std::pair<olc::vi2d, Tile*> tile : DungeonTiles)
         delete tile.second;
+    for (std::pair<olc::vi2d, Entity*> entity : Entities)
+        delete entity.second;
+    for (std::pair<olc::vi2d, FixedItem*> entity : FixedItems)
+        delete entity.second;
 }

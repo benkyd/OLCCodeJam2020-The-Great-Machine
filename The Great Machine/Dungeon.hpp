@@ -31,7 +31,7 @@ public:
 	Playable* Player;
 	Camera* ActiveCamera;
 
-	int TileSize = 16;
+	int TileSize = 64;
 
 	int DungeonWidth;
 	int DungeonHeight;

@@ -8,7 +8,7 @@ class Entity;
 class Camera
 {
 public:
-	olc::vi2d Coords;
+	olc::vf2d Coords;
 	olc::vi2d ViewPort;
 
 	void Update(float fTime);
@@ -20,6 +20,9 @@ public:
 private: 
 
 	Entity* _Track = nullptr;
+
+	olc::vi2d _DesiredCoords;
+	float _SmoothSpeed = 0.0125f;
 
 };
 
