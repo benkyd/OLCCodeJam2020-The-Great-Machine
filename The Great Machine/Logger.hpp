@@ -74,7 +74,7 @@ namespace EConsoleColour
 
 class Colour
 {
-public:
+    public:
 	static inline void ResetColour()
 	{
 #if defined(_WINDOWS)
@@ -86,9 +86,9 @@ public:
 			<< "\033[" << EConsoleColour::BG_DEFAULT << "m";
 #endif
 	}
-
+    
 	template<typename T>
-	static inline void ConsoleColour(T colour)
+        static inline void ConsoleColour(T colour)
 	{
 #if defined(_WINDOWS)
 		SetConsoleTextAttribute(h, colour);
@@ -100,7 +100,7 @@ public:
 
 class LogManager
 {
-
+    
 };
 
 namespace ELogType
@@ -125,21 +125,21 @@ struct LogEntity
 // Config must be loaded first
 class Logger
 {
-public:
-
+    public:
+    
 	Logger();
-
+    
 	static Logger& getInstance()
 	{
 		static Logger instance;
 		return instance;
 	}
-
+    
 	void InitializeFileLogging(std::filesystem::path path);
 	void InitializeLoggingThread();
-
+    
 	template<typename T>
-	void LogElement(T t)
+        void LogElement(T t)
 	{
 		if constexpr (std::is_same<char, T>::value)
 		{
@@ -148,12 +148,13 @@ public:
 		}
 		std::cout << t;
 	}
-
+    
 	// Basic log doesn't use the logthread so
 	// can be used before the thread is setup
 	// unless it is already ready
+    // Does not support the logging of vectors
 	template<typename... Args>
-	void BasicLog(Args... args)
+        void BasicLog(Args... args)
 	{
 		while (_IsLogging) {}
 		_IsLogging = true;
@@ -161,7 +162,7 @@ public:
 		LogElement('\n');
 		_IsLogging = false;
 	}
-
+    
 	void FastLog(std::string args)
 	{
 		if (!_IsRunning)
@@ -172,12 +173,12 @@ public:
 		_QueueLock.lock();
 		_LogQueue.push(new LogEntity{ args, ELogType::NONE });
 		_QueueLock.unlock();
-
+        
 		_TaskEnqueued.notify_one();
 	}
-
+    
 	template<typename... Args>
-	void Log(Args... args)
+        void Log(Args... args)
 	{
 		if (!_IsRunning)
 		{
@@ -187,16 +188,16 @@ public:
 		std::stringstream s;
 		_FillStringStream(s, args...);
 		LogEntity* e = new LogEntity{ s.str(), ELogType::NONE };
-
+        
 		_QueueLock.lock();
 		_LogQueue.push(e);
 		_QueueLock.unlock();
-
+        
 		_TaskEnqueued.notify_one();
 	}
-
+    
 	template<typename... Args>
-	void Info(Args... args)
+        void Info(Args... args)
 	{
 		if (!_IsRunning)
 		{
@@ -205,9 +206,9 @@ public:
 		}
 		_Log(ELogType::INFO, args...);
 	}
-
+    
 	template<typename... Args>
-	void Debug(Args... args)
+        void Debug(Args... args)
 	{
 		if (!_IsRunning)
 		{
@@ -216,9 +217,9 @@ public:
 		}
 		_Log(ELogType::DEBUG, args...);
 	}
-
+    
 	template<typename... Args>
-	void Warn(Args... args)
+        void Warn(Args... args)
 	{
 		if (!_IsRunning)
 		{
@@ -227,9 +228,9 @@ public:
 		}
 		_Log(ELogType::WARN, args...);
 	}
-
+    
 	template<typename... Args>
-	void Error(Args... args)
+        void Error(Args... args)
 	{
 		if (!_IsRunning)
 		{
@@ -238,9 +239,9 @@ public:
 		}
 		_Log(ELogType::ERR, args...);
 	}
-
+    
 	template<typename... Args>
-	void Panic(Args... args)
+        void Panic(Args... args)
 	{
 		if (!_IsRunning)
 		{
@@ -250,60 +251,60 @@ public:
 		}
 		_Log(ELogType::PANIC, args...);
 	}
-
+    
 	~Logger();
-
-public:
-
+    
+    public:
+    
 	std::atomic<bool> _IsRunning = false;
-
+    
 	std::condition_variable _TaskEnqueued;
 	std::queue<LogEntity*> _LogQueue;
 	std::mutex _QueueLock;
 	std::atomic<bool> _IsLogging = false;
-
+    
 	std::atomic<bool> _HasFileHandle = false;
 	std::ofstream _FileOutput;
-
-private:
-
+    
+    private:
+    
 	template <typename T, typename... A>
-	void _FillStringStream(std::stringstream& s, T head, A... a)
+        void _FillStringStream(std::stringstream& s, T head, A... a)
 	{
-		s << head;// << ' ';
+		s << head;
 		if constexpr (sizeof...(a))
 		{
 			_FillStringStream(s, a...);
 		}
 	}
-
+    
 	template<typename... Args>
-	void _Log(ELogType::Type type, Args... args)
+        void _Log(ELogType::Type type, Args... args)
 	{
 		std::stringstream s;
 		_FillStringStream(s, args...);
 		LogEntity* e = new LogEntity{ s.str(), type };
-
+        
 		_QueueLock.lock();
 		_LogQueue.push(e);
 		_QueueLock.unlock();
-
+        
 		_TaskEnqueued.notify_one();
 	}
-
+    
 	std::thread* _OutputWorker;
-
+    
 };
 
 class ScopedLogger
 {
-
+    
 };
 
 // times how long the scope took etc
 class ProfileLogger : public ScopedLogger
 {
-
+    
 };
 
 #endif

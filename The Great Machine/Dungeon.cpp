@@ -1,23 +1,26 @@
 #include "Dungeon.hpp"
 
 #include <algorithm>
+#include <sstream>
 
+#include "Collisions.hpp"
 #include "Things.hpp"
 #include "Camera.hpp"
 #include "Logger.hpp"
 
 Dungeon::Dungeon()
-    : _Logger(Logger::getInstance())
+: _Logger(Logger::getInstance())
 {
 	ActiveCamera = new Camera();
 	ActiveCamera->Coords = { 0, 0 };
 	ActiveCamera->ViewPort = { 1280, 720 };
-
+    
     Player = new Playable();
-
+    
     Player->Coords = { 0, 0 };
     Player->Type = EEntity::Type::Player;
-
+    Player->HitBox = new Collider{ 0, 0, static_cast<int>((static_cast<float>(TileSize) / 3.0f) * 2.0f), static_cast<int>((static_cast<float>(TileSize) / 3.0f) * 2.0f) } ;
+    
     ActiveCamera->TrackEntity(Player);
     ActiveCamera->Update(0.0f);
 }
@@ -25,17 +28,17 @@ Dungeon::Dungeon()
 void Dungeon::Generate()
 {
     srand(time(NULL));
-
+    
     TileSetDictionary = new TileDictionary();
     TileSetDictionary->Register();
-
+    
     TileSet = new olc::Renderable();
     TileSet->Load("res/dungeon_tileset.png");
     _Logger.Debug("Texture Loaded: ", TileSet, " ", TileSet->Sprite()->width, " ", TileSet->Sprite()->height);
-
+    
     DungeonWidth = 0;
     DungeonHeight = 0;
-
+    
     // Generate a dungeon
     // Loosely follows the algorithm in section 3.3 "Agent Based Growing"
     // http://pcgbook.com/wp-content/uploads/chapter03.pdf
@@ -44,39 +47,39 @@ void Dungeon::Generate()
     {
         int x, y, w, h;
     };
-
+    
     auto randomRoom = [](int x, int y) 
-        { return new Room{ x, y, (rand() % 7) + 3, (rand() % 7) + 3 }; };
-
+    { return new Room{ x, y, (rand() % 7) + 3, (rand() % 7) + 3 }; };
+    
     std::vector<olc::vi2d> tiles;
-
+    
     // Starting at 0,0
-
+    
     int directionChance = 5;
     int roomChance = 5;
     int dungeonMinSize = 5000;
-
+    
     struct Agent
     {
         // 0 up 1 right 2 down 3 left
         int x, y, direction;
     };
-
+    
     Agent* agent = new Agent();
     agent->x = 0; agent->y = 0;
     agent->direction = rand() % 4;
-
+    
     _Logger.Debug("Agent ", agent->x, " ", agent->y, " ", agent->direction);
-
+    
     auto addTile = [&](int x, int y) { 
         for (auto i : tiles)
             if (i.x == x && i.y == y)
-                return;
+            return;
         tiles.push_back({ x, y });
     };
-
+    
     addTile(0, 0);
-
+    
     while (tiles.size() < dungeonMinSize)
     {
         switch (agent->direction)
@@ -97,12 +100,12 @@ void Dungeon::Generate()
         {
             directionChance += 5;
         }
-
+        
         if (rand() % 300 < roomChance)
         {
             Room* room = randomRoom(agent->x, agent->y);
             for (int x = room->x; x < room->w + room->x; x++)
-            for (int y = room->y; y < room->h + room->y; y++)
+                for (int y = room->y; y < room->h + room->y; y++)
                 addTile(x, y);
             delete room;
             roomChance = 0;
@@ -112,24 +115,26 @@ void Dungeon::Generate()
             roomChance += 5;
         }
     }
-
+    
     for (auto& tile : tiles)
     {
         if (DungeonWidth <= tile.x) DungeonWidth = tile.x;
         if (DungeonHeight <= tile.y) DungeonHeight = tile.y;
-
+        
         ETile::Type tileType = rand() % 100 > 1 ? ETile::Type::Floor : ETile::Type::FloorV1;
-
+        
         auto DoesTileExist = [&](olc::vi2d tile)
         {
             return std::find(tiles.begin(), tiles.end(), tile) != tiles.end();
         };
-
+        
         bool tileBelow = DoesTileExist({ tile.x, tile.y + 1 });
         bool tileAbove = DoesTileExist({ tile.x, tile.y - 1 });
         bool tileLeft  = DoesTileExist({ tile.x - 1, tile.y });
         bool tileRight = DoesTileExist({ tile.x + 1, tile.y });
-
+        
+        // Order here is very important! stop fucking it up
+        
         if (!tileAbove)
             tileType = ETile::Type::WallU;
         if (!tileRight)
@@ -138,12 +143,12 @@ void Dungeon::Generate()
             tileType = ETile::Type::WallD;
         if (!tileLeft)
             tileType = ETile::Type::WallL;
-
+        
         if (!tileAbove && !tileBelow)
             tileType = ETile::Type::PathAcross;
         if (!tileRight && !tileLeft)
             tileType = ETile::Type::PathUp;
-
+        
         if (!tileAbove && !tileLeft)
             tileType = ETile::Type::WallTLCorner;
         if (!tileAbove && !tileRight)
@@ -152,7 +157,7 @@ void Dungeon::Generate()
             tileType = ETile::Type::WallBLCorner;
         if (!tileBelow && !tileRight)
             tileType = ETile::Type::WallBRCorner;
-
+        
         if (!tileAbove && !tileBelow && !tileRight)
             tileType = ETile::Type::PathRight;
         if (!tileAbove && !tileBelow && !tileLeft)
@@ -161,68 +166,119 @@ void Dungeon::Generate()
             tileType = ETile::Type::PathTop;
         if (!tileRight && !tileLeft && !tileBelow)
             tileType = ETile::Type::PathBottom;
-
+        
         // Is the tile below free? if so, make it 3D
         if (!tileBelow)
         {
             Tile* psuedo3DTile = new Tile({ tile.x, tile.y + 1 }, 
-                ETile::Type::ThreeDStandard, ETile::State::Default);
+                                          ETile::Type::ThreeDStandard, ETile::State::Default);
             DungeonTiles[psuedo3DTile->Coords] = psuedo3DTile;
         }
-
+        
         Tile* t = new Tile(tile, tileType, ETile::State::Default);
         DungeonTiles[t->Coords] = t;
     }
-
-    //DungeonRenderTarget = new olc::Renderable();
-    //DungeonRenderTarget->Create(DungeonWidth * TileSize, DungeonHeight * TileSize);
-    //DungeonRenderTarget->Create(200, 200);
 }
 
 void Dungeon::SpawnEntity(Entity* entity)
 {
-	Entities[entity->Coords] = entity;
+    Entities[entity->Coords] = entity;
 }
 
 void Dungeon::Input(olc::PixelGameEngine* engine, float fTime)
 {
     if (engine->GetKey(olc::W).bHeld)
-        Player->Coords.y -= static_cast<float>(TileSize) * (fTime * 10.0f);
+        Player->Coords.y -= static_cast<float>(TileSize) * (fTime * Player->Speed);
     if (engine->GetKey(olc::A).bHeld)
-        Player->Coords.x -= static_cast<float>(TileSize) * (fTime * 10.0f);
+        Player->Coords.x -= static_cast<float>(TileSize) * (fTime * Player->Speed);
     if (engine->GetKey(olc::S).bHeld)
-        Player->Coords.y += static_cast<float>(TileSize) * (fTime * 10.0f);
+        Player->Coords.y += static_cast<float>(TileSize) * (fTime * Player->Speed);
     if (engine->GetKey(olc::D).bHeld)
-        Player->Coords.x += static_cast<float>(TileSize) * (fTime * 10.0f);
+        Player->Coords.x += static_cast<float>(TileSize) * (fTime * Player->Speed);
+    
+    if (engine->GetKey(olc::W).bHeld && engine->GetKey(olc::A).bHeld)
+    {
+        Player->Coords.y += static_cast<float>(TileSize) * (fTime * (Player->Speed / 3.0f));
+        Player->Coords.x += static_cast<float>(TileSize) * (fTime * (Player->Speed / 3.0f));
+    }
+    if (engine->GetKey(olc::W).bHeld && engine->GetKey(olc::D).bHeld)
+    {
+        Player->Coords.y += static_cast<float>(TileSize) * (fTime * (Player->Speed / 3.0f));
+        Player->Coords.x -= static_cast<float>(TileSize) * (fTime * (Player->Speed / 3.0f));
+    }
+    if (engine->GetKey(olc::S).bHeld && engine->GetKey(olc::D).bHeld)
+    {
+        Player->Coords.y -= static_cast<float>(TileSize) * (fTime * (Player->Speed / 3.0f));
+        Player->Coords.x -= static_cast<float>(TileSize) * (fTime * (Player->Speed / 3.0f));
+    }
+    if (engine->GetKey(olc::S).bHeld && engine->GetKey(olc::A).bHeld)
+    {
+        Player->Coords.y -= static_cast<float>(TileSize) * (fTime * (Player->Speed / 3.0f));
+        Player->Coords.x += static_cast<float>(TileSize) * (fTime * (Player->Speed / 3.0f));
+    }
 }
 
 void Dungeon::Update(float fTime)
 {
-
-
-
+    
+    // Map collisions
+    
+    // generate a 3x3 bool map around where the player is 
+    std::vector<bool> colliderMap;
+    colliderMap.reserve(9);
+    
+    olc::vi2d currentTile = { static_cast<int>(Player->Coords.x / TileSize), static_cast<int>(Player->Coords.y / TileSize) };
+    
+    static olc::vi2d lastTile;
+    
+    auto IsVoid = [&] (int x, int y) {
+        std::unordered_map<olc::vi2d, Tile*>::const_iterator found = DungeonTiles.find({x, y});
+        if (found == DungeonTiles.end()) return true;
+        if (DungeonTiles[{x, y}]->Type == ETile::Type::ThreeDStandard) return true;
+        if (DungeonTiles[{x, y}]->Type == ETile::Type::Void) return true;
+        return false;
+    };
+    
+    if (lastTile != currentTile)
+        _Logger.Debug("Player Tile: ", currentTile.x, " ", currentTile.y, " ISVOID: ", IsVoid(currentTile.x, currentTile.y));
+    
+    
+    
+    lastTile = currentTile;
     ActiveCamera->Update(fTime);
 }
 
 void Dungeon::Draw(olc::PixelGameEngine* engine)
 {
-    //int 
-    //engine->SetDrawTarget(DungeonRenderTarget->Sprite());
+    // Maps not gonna be big enough for me to care about optimistaion
+    // maybe i should care? i don't :^)
+    
+    //engine->SetDrawTarget(4);
+    //engine->Clear({38, 36, 40});
+    
+    engine->SetDrawTarget(1);
+    engine->Clear({38, 36, 40});
+    
+    engine->SetPixelMode(olc::Pixel::ALPHA);
     for (std::pair<olc::vi2d, Tile*> tile : DungeonTiles)
     {
-        // TODO: Perform culling
-
+        // if (tile.second->Type == ETile::Type::Void) continue;
+        
         engine->DrawPartialDecal({ static_cast<float>((tile.first.x * TileSize) - ActiveCamera->Coords.x), static_cast<float>((tile.first.y * TileSize) - ActiveCamera->Coords.y) },
-            { static_cast<float>(TileSize), static_cast<float>(TileSize) }, TileSet->Decal(), TileSetDictionary->Dictionary[tile.second->Type], { 16, 16 });
+                                 { static_cast<float>(TileSize), static_cast<float>(TileSize) }, TileSet->Decal(), TileSetDictionary->Dictionary[tile.second->Type], { 16, 16 });
     }
-
-    //engine->SetDrawTarget(1);
-    //engine->DrawSprite({ 0, 0 }, DungeonRenderTarget->Sprite());
-
+    
+    // engine->SetPixelMode(olc::Pixel::NORMAL);
+    
+    engine->SetDrawTarget(static_cast<uint8_t>(0));
+    engine->Clear(olc::BLANK);
+    
+    engine->FillRect({0, 0}, {TileSize, TileSize}, olc::RED);
+    
     // Draw character
     engine->DrawPartialDecal({ static_cast<float>(Player->Coords.x - ActiveCamera->Coords.x), static_cast<float>(Player->Coords.y - ActiveCamera->Coords.y) },
-        { (static_cast<float>(TileSize) / 3.0f) * 2.0f, (static_cast<float>(TileSize) / 3.0f) * 2.0f }, TileSet->Decal(), { 143, 130 }, { 16, 16 });
-
+                             { (static_cast<float>(TileSize) / 3.0f) * 2.0f, (static_cast<float>(TileSize) / 3.0f) * 2.0f }, TileSet->Decal(), { 143, 130 }, { 16, 16 });
+    
 }
 
 Dungeon::~Dungeon()

@@ -4,11 +4,12 @@
 
 void Tile::Update(float fTime)
 {
-
+    
 }
 
 void TileDictionary::Register()
 {
+    Dictionary[ETile::Type::Void] = { 217, 15 };
 	Dictionary[ETile::Type::Floor] = { 27, 37 };
 	Dictionary[ETile::Type::FloorV1] = { 44, 16 };
 	Dictionary[ETile::Type::WallL] = { 0, 16 };

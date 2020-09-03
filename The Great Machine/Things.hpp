@@ -22,6 +22,7 @@ namespace ETile
 	enum Type
 	{
 		None,
+        Void,
 		Floor,
 		FloorV1,
 		WallL,
@@ -49,13 +50,13 @@ namespace ETile
 		DoorOpenTop,
 		DoorClosedTop,
 		DoorPortcullisTop,
-
+        
 		ThreeDStandard,
 		ThreeDSolid,
 		ThreeDSpike,
 		ThreeDSpikeBottom
 	};
-
+    
 	enum State
 	{
 		Default,
@@ -73,7 +74,7 @@ namespace EEntity
 		Enemy,
 		Boss
 	};
-
+    
 	namespace EItem
 	{
 		enum Item
@@ -81,7 +82,7 @@ namespace EEntity
 			None,
 			Sword
 		};
-
+        
 		// Fixed items can have states #door open / closed
 		enum FixedItem
 		{
@@ -91,58 +92,67 @@ namespace EEntity
 	}
 }
 
-class HitBox;
+class Collider;
+
 class Entity
 {
-public:
+    public:
 	olc::vf2d Coords;
 	EEntity::Type Type;
-	HitBox* AABBHitBox;
+	Collider* HitBox;
 	olc::vf2d SpriteTextureMask;
 	olc::Renderable* SpriteMap;
 };
 
 class Item : public Entity
 {
-public: 
+    public: 
 	EEntity::EItem::Item Item;
 };
 
 class FixedItem : public Entity
 {
-public:
+    public:
 	EEntity::EItem::FixedItem Item;
 };
 
 
 class Playable : public Entity
 {
-public:
+    public:
+	float Speed = 10.0f;
+    int SelectedInventoryItem = 0;
 	std::array<Item*, 6> Inventory;
 };
 
 
 class TileDictionary
 {
-public:
+    public:
 	void Register();
 	std::map<ETile::Type, olc::vi2d> Dictionary;
 };
 
 class Tile
 {
-public:
+    public:
 	Tile(olc::vi2d coords, ETile::Type type, ETile::State state)
 		: Coords(coords)
 		, Type(type)
 		, State(state)
-	{ }
-
+	{ 
+        if (Type == ETile::Type::None || Type == ETile::Type::Void || Type == ETile::Type::ThreeDStandard)
+            IsSolid = true;
+        else
+            IsSolid = false;
+    }
+    
 	olc::vi2d Coords;
 	ETile::Type Type;
 	ETile::State State;
-
-	HitBox* AABBHitBox;
+    bool IsSolid;
+    
+	Collider* HitBox;
 	
 	virtual void Update(float fTime);
 };

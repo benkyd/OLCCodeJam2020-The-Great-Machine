@@ -18,35 +18,35 @@ class TileDictionary;
 // Single level dungeon, no need for fancy levels
 class Dungeon
 {
-public:
+    public:
 	Dungeon();
-
+    
 	void Generate();
 	void SpawnEntity(Entity* entity);
-
+    
 	void Input(olc::PixelGameEngine* engine, float fTime);
 	void Update(float fTime);
 	void Draw(olc::PixelGameEngine* engine);
-
+    
 	Playable* Player;
 	Camera* ActiveCamera;
-
-	int TileSize = 64;
-
+    
+	int TileSize = 32;
+    
 	int DungeonWidth;
 	int DungeonHeight;
 	std::unordered_map<olc::vi2d, Tile*> DungeonTiles;
-	std::unordered_map<olc::vf2d, Entity*> Entities; // key here could be room?
+	std::unordered_map<olc::vf2d, Entity*> Entities;
 	std::unordered_map<olc::vf2d, FixedItem*> FixedItems;
-
+    
 	TileDictionary* TileSetDictionary;
 	olc::Renderable* TileSet;
-
+    
 	olc::Renderable* DungeonRenderTarget;
-
+    
 	~Dungeon();
-
-private:
+    
+    private:
 	Logger& _Logger;
 };
 

@@ -1,5 +1,6 @@
-[ ] Dungeon generation
-[ ] Tile movement / playable character
+[x] Dungeon generation
+[x] Tile movement / playable character
+[-] Tile collisions
 [ ] Lighting
 [ ] Gameplay
     [ ] Actually figure out Gameplay

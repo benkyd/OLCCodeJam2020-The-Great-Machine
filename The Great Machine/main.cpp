@@ -7,26 +7,29 @@
 
 class Game : public olc::PixelGameEngine
 {
-private:
-
+    private:
+    
 	Logger& _Logger;
 	Dungeon* _Dungeon;
-
-public:
+    
+    public:
 	Game()
 		: _Logger(Logger::getInstance())
 	{
 		sAppName = "The Great Machine";
 	}
-
+    
 	bool OnUserCreate() override
 	{
 		_Dungeon = new Dungeon();
 		_Dungeon->Generate();
-
+        
+        for (int i = 0; i < 5; i++)
+            CreateLayer();
+        
 		return true;
 	}
-
+    
 	void DisplayTitle(float fTime)
 	{
 		if (m_TimeAccumilator > 2.0f)
@@ -38,36 +41,38 @@ public:
 		DrawString(5, ScreenHeight() - 15, "Powered by the OLC Pixel Game Engine", olc::Pixel(255, 255, 255, static_cast<int>(m_DeltaFade)));
 		DrawString(ScreenWidth() - (8 * (std::string("Copyright Benjamin Kyd 2020").length())) - 5, ScreenHeight() - 15, "Copyright Benjamin Kyd 2020", olc::Pixel(255, 255, 255, static_cast<int>(m_DeltaFade)));
 	}
-
+    
 	bool OnUserUpdate(float fTime) override
 	{
-		SetPixelMode(olc::Pixel::ALPHA);
 		m_TimeAccumilator += fTime;
-
-		Clear({ 38, 36, 40 });
 		
-		// _Logger.Debug(m_TimeAccumilator);
-
-		//if (m_TimeAccumilator < 4.0f)
-		//{
-		//	DisplayTitle(fTime);
-		//	return true;
-		//}
-
-		_Dungeon->Input(this, fTime);
-
+        Clear({38, 36, 40});
+        
+        // _Logger.Debug(m_TimeAccumilator);
+        
+        //if (m_TimeAccumilator < 4.0f)
+        //{
+        //DisplayTitle(fTime);
+        //return true;
+        //}
+        
+        _Dungeon->Input(this, fTime);
+        
 		_Dungeon->Update(fTime);
-
+        
 		_Dungeon->Draw(this);
-
+        
+        for (int i = 0; i < 5; i++)
+            EnableLayer(i, true);
+        
 		return true;
 	}
-
-private:
+    
+    private:
 	long float m_TimeAccumilator = 0;
-
+    
 	float m_DeltaFade = 255.0f;
-
+    
 };
 
 
@@ -76,7 +81,7 @@ int main()
 	Logger& _Logger = Logger::getInstance();
 	_Logger.InitializeFileLogging("./logs.log");
 	_Logger.InitializeLoggingThread();
-
+    
 	Game _Game;
 	_Game.Construct(1280, 720, 1, 1, false, false);
 	_Logger.Info("Game Constructed");
