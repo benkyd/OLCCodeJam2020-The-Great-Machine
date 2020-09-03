@@ -48,11 +48,11 @@ public:
 		
 		// _Logger.Debug(m_TimeAccumilator);
 
-		if (m_TimeAccumilator < 4.0f)
-		{
-			DisplayTitle(fTime);
-			return true;
-		}
+		//if (m_TimeAccumilator < 4.0f)
+		//{
+		//	DisplayTitle(fTime);
+		//	return true;
+		//}
 
 		_Dungeon->Input(this, fTime);
 

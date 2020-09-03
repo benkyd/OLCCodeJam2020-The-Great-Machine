@@ -174,8 +174,9 @@ void Dungeon::Generate()
         DungeonTiles[t->Coords] = t;
     }
 
-    // DungeonRenderTarget = new olc::Renderable();
-    // DungeonRenderTarget->Create(DungeonWidth * 32, DungeonHeight * 32);
+    DungeonRenderTarget = new olc::Renderable();
+    //DungeonRenderTarget->Create(DungeonWidth * TileSize, DungeonHeight * TileSize);
+    //DungeonRenderTarget->Create(200, 200);
 }
 
 void Dungeon::SpawnEntity(Entity* entity)
@@ -186,13 +187,13 @@ void Dungeon::SpawnEntity(Entity* entity)
 void Dungeon::Input(olc::PixelGameEngine* engine, float fTime)
 {
     if (engine->GetKey(olc::W).bHeld)
-        Player->Coords.y -= 1000 * fTime;
+        Player->Coords.y -= static_cast<int>(static_cast<float>(TileSize) * (fTime * 10.0f));
     if (engine->GetKey(olc::A).bHeld)
-        Player->Coords.x -= 1000 * fTime;
+        Player->Coords.x -= static_cast<int>(static_cast<float>(TileSize) * (fTime * 10.0f));
     if (engine->GetKey(olc::S).bHeld)
-        Player->Coords.y += 1000 * fTime;
+        Player->Coords.y += static_cast<int>(static_cast<float>(TileSize) * (fTime * 10.0f));
     if (engine->GetKey(olc::D).bHeld)
-        Player->Coords.x += 1000 * fTime;
+        Player->Coords.x += static_cast<int>(static_cast<float>(TileSize) * (fTime * 10.0f));
 }
 
 void Dungeon::Update(float fTime)
@@ -202,17 +203,22 @@ void Dungeon::Update(float fTime)
 
 void Dungeon::Draw(olc::PixelGameEngine* engine)
 {
+    //int 
+    engine->SetDrawTarget(DungeonRenderTarget->Sprite());
     for (std::pair<olc::vi2d, Tile*> tile : DungeonTiles)
     {
         // TODO: Perform culling
-        engine->DrawPartialDecal({ static_cast<float>((tile.first.x * 64) - ActiveCamera->Coords.x), static_cast<float>((tile.first.y * 64) - ActiveCamera->Coords.y) },
-            { 64, 64 }, TileSet->Decal(), TileSetDictionary->Dictionary[tile.second->Type], { 16, 16 });
+
+        engine->DrawPartialDecal({ static_cast<float>((tile.first.x * TileSize) - ActiveCamera->Coords.x), static_cast<float>((tile.first.y * TileSize) - ActiveCamera->Coords.y) },
+            { static_cast<float>(TileSize), static_cast<float>(TileSize) }, TileSet->Decal(), TileSetDictionary->Dictionary[tile.second->Type], { 16, 16 });
     }
 
+    engine->SetDrawTarget(1);
+    engine->DrawSprite({ 0, 0 }, DungeonRenderTarget->Sprite());
 
     // Draw character
     engine->DrawPartialDecal({ static_cast<float>(Player->Coords.x - ActiveCamera->Coords.x), static_cast<float>(Player->Coords.y - ActiveCamera->Coords.y) },
-        { 64, 64 }, TileSet->Decal(), { 143, 130 }, { 16, 16 });
+        { (static_cast<float>(TileSize) / 3.0f) * 2.0f, (static_cast<float>(TileSize) / 3.0f) * 2.0f }, TileSet->Decal(), { 143, 130 }, { 16, 16 });
 
 }
 

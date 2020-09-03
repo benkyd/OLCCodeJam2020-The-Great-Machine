@@ -31,6 +31,8 @@ public:
 	Playable* Player;
 	Camera* ActiveCamera;
 
+	int TileSize = 16;
+
 	int DungeonWidth;
 	int DungeonHeight;
 	std::unordered_map<olc::vi2d, Tile*> DungeonTiles;
@@ -40,7 +42,7 @@ public:
 	TileDictionary* TileSetDictionary;
 	olc::Renderable* TileSet;
 
-	// olc::Renderable* DungeonRenderTarget;
+	olc::Renderable* DungeonRenderTarget;
 
 	~Dungeon();
 
