@@ -93,6 +93,7 @@ namespace EEntity
 }
 
 class Collider;
+class Camera;
 
 class Entity
 {
@@ -100,6 +101,7 @@ class Entity
 	olc::vf2d Coords;
 	EEntity::Type Type;
 	Collider* HitBox;
+    Camera* TrackingCamera;
 	olc::vf2d SpriteTextureMask;
 	olc::Renderable* SpriteMap;
 };
@@ -152,7 +154,8 @@ class Tile
 	ETile::State State;
     bool IsSolid;
     
-	Collider* HitBox;
+    // CBA, just gonna use coords and size
+	// Collider* HitBox;
 	
 	virtual void Update(float fTime);
 };

@@ -58,7 +58,7 @@ class Game : public olc::PixelGameEngine
         
         _Dungeon->Input(this, fTime);
         
-		_Dungeon->Update(fTime);
+		_Dungeon->Update(this, fTime);
         
 		_Dungeon->Draw(this);
         

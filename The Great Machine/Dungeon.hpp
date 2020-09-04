@@ -25,7 +25,7 @@ class Dungeon
 	void SpawnEntity(Entity* entity);
     
 	void Input(olc::PixelGameEngine* engine, float fTime);
-	void Update(float fTime);
+	void Update(olc::PixelGameEngine* engine, float fTime);
 	void Draw(olc::PixelGameEngine* engine);
     
 	Playable* Player;

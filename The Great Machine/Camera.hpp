@@ -22,7 +22,7 @@ class Camera
 	Entity* _Track = nullptr;
     
 	olc::vi2d _DesiredCoords;
-	float _SmoothSpeed = 0.01f;
+	float _SmoothSpeed = 0.025f;
     
 };
 

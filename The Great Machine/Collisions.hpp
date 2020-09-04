@@ -1,8 +1,13 @@
 #ifndef GREATMACHINE_COLLISIONS_H_
 #define GREATMACHINE_COLLISIONS_H_
 
+#include <unordered_map>
+#include <vector>
+
+#include "olcPixelGameEngine.hpp"
+
 class Entity;
-// class 
+class Tile; 
 
 class Collider
 {
@@ -12,14 +17,11 @@ class Collider
 
 class CollisionInfo
 {
-public:
-
+    public:
+    
 };
 
-
-
-// bool EntityCollide
-
+bool EntityCollide(Entity* entity, std::vector<Tile*>& nearby, int tileSize, CollisionInfo* info, olc::PixelGameEngine* engine);
 
 
 #endif
