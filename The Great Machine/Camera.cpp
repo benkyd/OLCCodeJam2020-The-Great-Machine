@@ -8,8 +8,7 @@
 void Camera::Update(float fTime)
 {
 	if (_Track == nullptr) return;
-	_DesiredCoords.x = _Track->Coords.x - (ViewPort.x / 2);
-	_DesiredCoords.y = _Track->Coords.y - (ViewPort.y / 2);
+	_DesiredCoords = _Track->Coords - (ViewPort / 2);
     
 	float lerpX = std::lerp(Coords.x, _DesiredCoords.x, _SmoothSpeed);
 	float lerpY = std::lerp(Coords.y, _DesiredCoords.y, _SmoothSpeed);

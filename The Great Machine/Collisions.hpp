@@ -18,10 +18,13 @@ class Collider
 class CollisionInfo
 {
     public:
-    
+    Tile* TileCollided;
+    bool CollidingX;
+    bool CollidingY;
 };
 
 bool EntityCollide(Entity* entity, std::vector<Tile*>& nearby, int tileSize, CollisionInfo* info, olc::PixelGameEngine* engine);
 
 
 #endif
+

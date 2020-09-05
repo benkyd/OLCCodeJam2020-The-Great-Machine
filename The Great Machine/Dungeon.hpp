@@ -31,7 +31,7 @@ class Dungeon
 	Playable* Player;
 	Camera* ActiveCamera;
     
-	int TileSize = 32;
+	int TileSize = 64;
     
 	int DungeonWidth;
 	int DungeonHeight;
@@ -42,7 +42,7 @@ class Dungeon
 	TileDictionary* TileSetDictionary;
 	olc::Renderable* TileSet;
     
-	olc::Renderable* DungeonRenderTarget;
+    olc::Renderable* FireOverlay;
     
 	~Dungeon();
     

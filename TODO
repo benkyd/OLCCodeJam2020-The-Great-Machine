@@ -1,7 +1,17 @@
 [x] Dungeon generation
 [x] Tile movement / playable character
-[-] Tile collisions
-[ ] Lighting
+[X] Tile collisions
+
+# Today
+
+[-] Lighting (and torches)
+[ ] Lighting flicker (fire)
+[ ] NO TIME raytraced lighting
+[ ] Fix collision
+[ ] Better player spritesheet
+[ ] Animation system
+[ ] Enemies / AI
+[ ] Dungeon fixed entity spawning
+[ ] Enemy AI
 [ ] Gameplay
-    [ ] Actually figure out Gameplay
 

@@ -17,18 +17,14 @@ Dungeon::Dungeon()
     
     Player = new Playable();
     
-    Player->Coords = { 0, 0 };
+    Player->Coords = { 2, 2 };
     Player->Type = EEntity::Type::Player;
     // Relative to player TL corner
+    // not really used ? lol
     Player->HitBox = new Collider{ 0, 0, static_cast<int>((static_cast<float>(TileSize) / 3.0f) * 2.0f), static_cast<int>((static_cast<float>(TileSize) / 3.0f) * 2.0f) } ;
     
     ActiveCamera->TrackEntity(Player);
     ActiveCamera->Update(0.0f);
-}
-
-void Dungeon::Generate()
-{
-    srand(time(NULL));
     
     TileSetDictionary = new TileDictionary();
     TileSetDictionary->Register();
@@ -36,6 +32,15 @@ void Dungeon::Generate()
     TileSet = new olc::Renderable();
     TileSet->Load("res/dungeon_tileset.png");
     _Logger.Debug("Texture Loaded: ", TileSet, " ", TileSet->Sprite()->width, " ", TileSet->Sprite()->height);
+    
+    FireOverlay = new olc::Renderable();
+    FireOverlay->Load("res/torch.png");
+    
+}
+
+void Dungeon::Generate()
+{
+    srand(time(NULL));
     
     DungeonWidth = 0;
     DungeonHeight = 0;
@@ -58,7 +63,7 @@ void Dungeon::Generate()
     
     int directionChance = 5;
     int roomChance = 5;
-    int dungeonMinSize = 5000;
+    int dungeonMinSize = 3000;
     
     struct Agent
     {
@@ -188,6 +193,8 @@ void Dungeon::SpawnEntity(Entity* entity)
 
 void Dungeon::Input(olc::PixelGameEngine* engine, float fTime)
 {
+    olc::vf2d oldCoords = Player->Coords;
+    
     if (engine->GetKey(olc::W).bHeld)
         Player->Coords.y -= static_cast<float>(TileSize) * (fTime * Player->Speed);
     if (engine->GetKey(olc::A).bHeld)
@@ -217,55 +224,95 @@ void Dungeon::Input(olc::PixelGameEngine* engine, float fTime)
         Player->Coords.y -= static_cast<float>(TileSize) * (fTime * (Player->Speed / 3.0f));
         Player->Coords.x += static_cast<float>(TileSize) * (fTime * (Player->Speed / 3.0f));
     }
-}
-
-void Dungeon::Update(olc::PixelGameEngine* engine, float fTime)
-{
     
     // Map collisions
-    
     olc::vi2d currentTile = { static_cast<int>(Player->Coords.x / TileSize), static_cast<int>(Player->Coords.y / TileSize) };
     
     static olc::vi2d lastTile;
     
-    auto IsMapMember = [&] (int x, int y) {
-        std::unordered_map<olc::vi2d, Tile*>::const_iterator found = DungeonTiles.find({x, y});
-        if (found == DungeonTiles.end()) return false;
-        return false;
-    };
-    
     if (lastTile != currentTile)
         _Logger.Debug("Player Tile: ", currentTile.x, " ", currentTile.y);
+    
+    auto IsMapMember = [&] (int x, int y) {
+        std::unordered_map<olc::vi2d, Tile*>::const_iterator found = DungeonTiles.find({x, y});
+        return found != DungeonTiles.end();
+    };
+    
+    auto IsNeighbouringMapMember = [&] (int x, int y) {
+        if (IsMapMember(x + 1, y)) return true;
+        if (IsMapMember(x - 1, y)) return true;
+        if (IsMapMember(x, y + 1)) return true;
+        if (IsMapMember(x, y - 1)) return true;
+        return false;
+    };
     
     // get nearby collidables
     std::vector<Tile*> nearbyCollidables;
     
-    for (int x = currentTile.x - 2; x <= currentTile.x + 2; x++)
-        for (int y = currentTile.y - 2; y <= currentTile.y + 2; y++)
+    for (int x = currentTile.x - 1; x <= currentTile.x + 1; x++)
+        for (int y = currentTile.y - 1; y <= currentTile.y + 1; y++)
     {
+        //_Logger.Debug("IsMapMember ", x, " ", y, " ", IsMapMember(x,y));
+        //_Logger.Debug("IsNeighbouringMapMember ", x, " ", y, " ", IsNeighbouringMapMember(x,y));
+        
+        // If isnt in the map but borders a map tile, add a void type for collision
         if (IsMapMember(x,y))
+        {
             nearbyCollidables.push_back(DungeonTiles[{x, y}]);
+        } else
+        {
+            if (IsNeighbouringMapMember(x,y))
+                nearbyCollidables.push_back(new Tile({x, y}, ETile::Type::Void, ETile::State::Default));
+        }
     }
     
     // Passes ownership back
-    CollisionInfo* collisionInfo = new CollisionInfo();
-    bool colliding = EntityCollide(Player, nearbyCollidables, TileSize, collisionInfo, engine);
+    CollisionInfo collisionInfo;
+    bool colliding = EntityCollide(Player, nearbyCollidables, TileSize, &collisionInfo, engine);
     
-    delete collisionInfo;
+    // collision response
+    if (colliding)
+        Player->Coords = oldCoords;
+    
+    //if (collisionInfo.CollidingY)
+    //Player->Coords.y = oldCoords.y;
+    //if (collisionInfo.CollidingX)
+    //Player->Coords.x = oldCoords.x;
+    
+    // delete nearbyCollidables that are void
+    for (int i = 0; i < nearbyCollidables.size(); i++)
+    {
+        if (nearbyCollidables[i]->Type == ETile::Type::Void)
+            delete nearbyCollidables[i];
+    }
     
     lastTile = currentTile;
+}
+
+void Dungeon::Update(olc::PixelGameEngine* engine, float fTime)
+{
     ActiveCamera->Update(fTime);
+}
+
+olc::Pixel pixelMultiply(const int x, const int y, const olc::Pixel& pSource, const olc::Pixel& pDest)
+{
+    olc::Pixel ret;
+    ret.r = pDest.r * pSource.r;
+    ret.g = pDest.g * pSource.g;
+    ret.b = pDest.b * pSource.b;
+    ret.a = pDest.a * pSource.a;
+    return ret;
 }
 
 void Dungeon::Draw(olc::PixelGameEngine* engine)
 {
     // Maps not gonna be big enough for me to care about optimistaion
-    // maybe i should care? i don't :^)
+    // maybe i should care? i don't
     
-    //engine->SetDrawTarget(4);
-    //engine->Clear({38, 36, 40});
+    // Entities are always (tilesize / 3) * 2
     
-    engine->SetDrawTarget(1);
+    // Dungeon Layer
+    engine->SetDrawTarget(4);
     engine->Clear({38, 36, 40});
     
     engine->SetPixelMode(olc::Pixel::ALPHA);
@@ -279,14 +326,38 @@ void Dungeon::Draw(olc::PixelGameEngine* engine)
     
     // engine->SetPixelMode(olc::Pixel::NORMAL);
     
-    engine->SetDrawTarget(static_cast<uint8_t>(0));
+    // Entity Layer
+    engine->SetDrawTarget(3);
     engine->Clear(olc::BLANK);
     
     // Draw character
     engine->DrawPartialDecal({ static_cast<float>(Player->Coords.x - ActiveCamera->Coords.x), static_cast<float>(Player->Coords.y - ActiveCamera->Coords.y) },
                              { (static_cast<float>(TileSize) / 3.0f) * 2.0f, (static_cast<float>(TileSize) / 3.0f) * 2.0f }, TileSet->Decal(), { 143, 130 }, { 16, 16 });
     
-    engine->DrawRect({(Player->HitBox->x + (int)Player->Coords.x) - (int)ActiveCamera->Coords.x, (Player->HitBox->y + (int)Player->Coords.y) - (int)ActiveCamera->Coords.y}, {Player->HitBox->w, Player->HitBox->h}, olc::RED); 
+    // Lighting layers
+    engine->SetDrawTarget(2);
+    engine->Clear(olc::BLANK);
+    
+    static std::function<olc::Pixel(const int x, const int y, const olc::Pixel& pSource, const olc::Pixel& pDest)> fPixelMultiply = pixelMultiply;
+    
+    float lightX = static_cast<float>(Player->Coords.x - ActiveCamera->Coords.x) - (FireOverlay->Sprite()->width / 2.0f);
+    float lightY = static_cast<float>(Player->Coords.y - ActiveCamera->Coords.y) - (FireOverlay->Sprite()->height / 2.0f);
+    
+    float lightLeft = lightX;
+    float lightRight = lightX + FireOverlay->Sprite()->width;
+    float lightTop = lightY;
+    float lightBottom = lightY + FireOverlay->Sprite()->height;
+    
+    engine->SetPixelMode(fPixelMultiply);
+    engine->DrawDecal({ lightX, lightY }, FireOverlay->Decal());
+    
+    engine->SetDrawTarget(1);
+    engine->Clear(olc::BLANK);
+    // top 
+    
+    engine->FillRect({0, static_cast<int>(lightTop)}, {engine->ScreenWidth(), engine->ScreenHeight()}, olc::BLACK);  
+    
+    
 }
 
 Dungeon::~Dungeon()
@@ -295,7 +366,6 @@ Dungeon::~Dungeon()
     delete ActiveCamera;
     delete TileSetDictionary;
     delete TileSet;
-    delete DungeonRenderTarget;
     for (std::pair<olc::vi2d, Tile*> tile : DungeonTiles)
         delete tile.second;
     for (std::pair<olc::vi2d, Entity*> entity : Entities)
