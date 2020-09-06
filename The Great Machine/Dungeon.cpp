@@ -498,8 +498,12 @@ void Dungeon::Update(olc::PixelGameEngine* engine, float fTime)
     int enemyBoundsRight  = enemyBoundsLeft + 1280.0f;
     int enemyBoundsBottom = enemyBoundsTop + 720.0f;
     
+    auto rangedRand = [](float min, float max) -> int {
+        return static_cast<int>(min) + rand() % ((static_cast<int>(max) + 1) - static_cast<int>(min));
+    };
+    
     // spawn enemies
-    if (rand() % 100 < 1 && Enemies.size() < 20)
+    if (rand() % 100 < 1 && Enemies.size() <= 7)
     {
         Enemy* enemy = new Enemy();
         enemy->Type = EEntity::Type::Enemy;
@@ -511,17 +515,13 @@ void Dungeon::Update(olc::PixelGameEngine* engine, float fTime)
         if (enemyBoundsLeft == 0) enemyBoundsLeft = 1;
         if (enemyBoundsTop == 0) enemyBoundsTop = 1;
         
-        auto rangedRand = [](float min, float max) -> int {
-            return static_cast<int>(min) + rand() % ((static_cast<int>(max) + 1) - static_cast<int>(min));
-        };
-        
         enemy->Coords = { static_cast<float>(rangedRand(enemyBoundsLeft, enemyBoundsRight)), static_cast<float>(rangedRand(enemyBoundsTop, enemyBoundsBottom) ) };
         
         enemy->dxdy = { static_cast<float>(rand() % 10 - 5), static_cast<float>(rand() % 10 - 5) };
         
         float distanceFromPlayer = vecDistance(Player->Coords, enemy->Coords);
         _Logger.Debug(enemy->Coords.x, " ", enemy->Coords.y, " ", distanceFromPlayer);
-        if (distanceFromPlayer > 300.0f)
+        if (distanceFromPlayer > 200.0f)
         {
             enemy->HitBox = new Collider{ 0, 0, 28, 36 };
             Enemies.push_back(enemy);
@@ -542,7 +542,7 @@ void Dungeon::Update(olc::PixelGameEngine* engine, float fTime)
         enemy->Coords += enemy->dxdy;
         
         float distanceFromPlayer = vecDistance(Player->Coords, enemy->Coords);
-        if (distanceFromPlayer > 550.0f)
+        if (distanceFromPlayer > 500.0f)
         {
             Enemies.erase(Enemies.begin() + i);
             delete enemy->HitBox;
@@ -554,9 +554,7 @@ void Dungeon::Update(olc::PixelGameEngine* engine, float fTime)
         if (!colliding) continue;
         SoundHit.play();
         Player->Life--;
-        Enemies.erase(Enemies.begin() + i);
-        delete enemy->HitBox;
-        delete enemy;
+        enemy->Coords = { static_cast<float>(rangedRand(enemyBoundsLeft, enemyBoundsRight)), static_cast<float>(rangedRand(enemyBoundsTop, enemyBoundsBottom) ) };
     }
     
     if (StartedSpawning != true) return;
