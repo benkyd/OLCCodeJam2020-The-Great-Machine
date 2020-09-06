@@ -38,6 +38,7 @@ class Dungeon
     Playable* Player;
 	Camera* ActiveCamera;
     
+    bool StartedSpawning = false;
     olc::Renderable* EnemyRenderable;
     olc::AnimatedSprite* EnemyAnimator;
     std::vector<Enemy*> Enemies;
@@ -65,6 +66,9 @@ class Dungeon
     sf::Sound SoundAmbient;
     sf::SoundBuffer SoundBufferFootsteps;
     sf::Sound SoundFootsteps;
+    
+    sf::SoundBuffer SoundBufferHit;
+    sf::Sound SoundHit;
     
 	~Dungeon();
     

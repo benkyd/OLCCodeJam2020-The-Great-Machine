@@ -82,6 +82,7 @@ Dungeon::Dungeon()
     Player->HitBox = new Collider{ 0, 0, 28, 36 };
     
     Lives = new olc::Renderable();
+    Lives->Load("res/heart.png");
     
     EnemyRenderable = new olc::Renderable();
     EnemyRenderable->Load("res/player.png");
@@ -167,6 +168,11 @@ Dungeon::Dungeon()
     SoundFootsteps.setBuffer(SoundBufferFootsteps);
     SoundFootsteps.setLoop(true);
     SoundFootsteps.setVolume(20.f);
+    
+    SoundBufferHit.loadFromFile("res/hit.wav");
+    SoundHit.setBuffer(SoundBufferHit);
+    SoundHit.setLoop(false);
+    SoundHit.setVolume(40.f);
     
 }
 
@@ -483,7 +489,7 @@ void Dungeon::Update(olc::PixelGameEngine* engine, float fTime)
     ActiveCamera->Update(fTime);
     CollisionTick(engine);
     
-    if (!HasBegun) return;
+    if (!HasBegun || !IsAlive || HasWon) return;
     
     engine->SetDrawTarget(1);
     
@@ -493,7 +499,7 @@ void Dungeon::Update(olc::PixelGameEngine* engine, float fTime)
     int enemyBoundsBottom = enemyBoundsTop + 720.0f;
     
     // spawn enemies
-    if (rand() % 100 < 1)
+    if (rand() % 100 < 1 && Enemies.size() < 20)
     {
         Enemy* enemy = new Enemy();
         enemy->Type = EEntity::Type::Enemy;
@@ -515,10 +521,11 @@ void Dungeon::Update(olc::PixelGameEngine* engine, float fTime)
         
         float distanceFromPlayer = vecDistance(Player->Coords, enemy->Coords);
         _Logger.Debug(enemy->Coords.x, " ", enemy->Coords.y, " ", distanceFromPlayer);
-        if (distanceFromPlayer > 300)
+        if (distanceFromPlayer > 300.0f)
         {
             enemy->HitBox = new Collider{ 0, 0, 28, 36 };
             Enemies.push_back(enemy);
+            StartedSpawning = true;
         }
         else
         {
@@ -534,18 +541,37 @@ void Dungeon::Update(olc::PixelGameEngine* engine, float fTime)
         enemy->dxdy =  static_cast<float>(TileSize) * (fTime * (Player->Speed / 1.5f) * olc::vf2d(desiredLocation - enemy->Coords).norm());
         enemy->Coords += enemy->dxdy;
         
+        float distanceFromPlayer = vecDistance(Player->Coords, enemy->Coords);
+        if (distanceFromPlayer > 550.0f)
+        {
+            Enemies.erase(Enemies.begin() + i);
+            delete enemy->HitBox;
+            delete enemy;
+            continue;
+        }
+        
         bool colliding = EntityCollide(Player, enemy, engine);
         if (!colliding) continue;
+        SoundHit.play();
         Player->Life--;
         Enemies.erase(Enemies.begin() + i);
         delete enemy->HitBox;
         delete enemy;
     }
     
+    if (StartedSpawning != true) return;
+    
     if (Player->Life <= 0)
     {
         IsAlive = false;
         _Logger.Info("Died, health ", Player->Life);
+        return;
+    }
+    
+    if(Enemies.size() == 0)
+    {
+        HasWon = true;
+        return;
     }
 }
 
@@ -563,8 +589,6 @@ void Dungeon::Draw(olc::PixelGameEngine* engine, float fTime)
 {
     // Maps not gonna be big enough for me to care about optimistaion
     // maybe i should care? i don't
-    
-    // Entities are always (tilesize / 3) * 2
     
     // Dungeon Layer
     engine->SetDrawTarget(4);
@@ -621,6 +645,7 @@ void Dungeon::Draw(olc::PixelGameEngine* engine, float fTime)
     {
         SoundFire.play();
         LastPlayFire = true;
+        IsLightOn = true;
         HasFireLit = true;
     }
     
@@ -660,7 +685,54 @@ void Dungeon::Draw(olc::PixelGameEngine* engine, float fTime)
     
     engine->DrawString({15, 15}, std::to_string(Enemies.size()), olc::WHITE, 5);
     
+    for (int i = 1; i <= Player->Life; i++)
+        engine->DrawDecal({static_cast<float>(engine->ScreenWidth() - (static_cast<float>(i) * Lives->Sprite()->width)) ,0.0f}, Lives->Decal());
     
+    if (!IsAlive)
+    {
+        SoundFire.stop();
+        engine->SetDrawTarget(uint8_t(0));
+        engine->Clear({38, 36, 40});
+        engine->DrawString({15, engine->ScreenHeight() / 2 - 76}, "your demons overran you", olc::WHITE, 4);
+        engine->DrawString({15, engine->ScreenHeight() / 2 - 38}, "the machine's manifestations won", olc::WHITE, 4);
+        engine->DrawString({15, engine->ScreenHeight() / 2}, "you are nothing to them", olc::WHITE, 4);
+        engine->DrawString({15, engine->ScreenHeight() / 2 + 38}, "you never were", olc::WHITE, 4);
+        return;
+    }
+    
+    if (HasWon)
+    { 
+        IsFireLit = false;
+        SoundFire.stop();
+        engine->SetDrawTarget(uint8_t(0));
+        engine->Clear({38, 36, 40});
+        engine->DrawString({15, engine->ScreenHeight() / 2 - 76}, "you did it..", olc::WHITE, 4);
+        engine->DrawString({15, engine->ScreenHeight() / 2 - 38}, "you outran all your demons", olc::WHITE, 4);
+        engine->DrawString({15, engine->ScreenHeight() / 2}, "but your demons never really leave", olc::WHITE, 4);
+        engine->DrawString({15, engine->ScreenHeight() / 2 + 76}, "welcome to the great machine", olc::WHITE, 4);
+        engine->DrawString({5, engine->ScreenHeight() - 15}, "Press enter to enter the great machine", olc::WHITE);
+        
+        if (engine->GetKey(olc::ENTER).bPressed)
+        {
+            _Logger.Info("Restart");
+            Player->Life = 7;
+            Player->Coords = { 5.0f, 5.0f };
+            ActiveCamera->TrackEntity(Player);
+            IsFireLit = true;
+            StartedSpawning = false;
+            IsAlive = true;
+            HasBegun = false;
+            HasWon = false;
+            FireAccumilator = 0.0f;
+            WasFireLit = false;
+            HasFireLit = false;
+            LastPlayFire = false;
+            PlayFire = false;
+            IsLightOn = false;
+        }
+        
+        return;
+    }
     
 }
 
