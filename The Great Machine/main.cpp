@@ -51,8 +51,16 @@ class Game : public olc::PixelGameEngine
         
         SetDrawTarget(uint8_t(0));
         Clear(olc::BLANK);
+        SetDrawTarget(uint8_t(1));
+        Clear(olc::BLANK);
+        SetDrawTarget(uint8_t(2));
+        Clear(olc::BLANK);
+        SetDrawTarget(uint8_t(3));
+        Clear(olc::BLANK);
+        SetDrawTarget(uint8_t(4));
+        Clear({38, 36, 40});
         
-        // goto bruh;
+        goto bruh;
         
         if (_TimeAccumilator < 6.0f)
         {

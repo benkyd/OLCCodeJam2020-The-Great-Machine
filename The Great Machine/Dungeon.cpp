@@ -406,8 +406,6 @@ void Dungeon::Input(olc::PixelGameEngine* engine, float fTime)
         Player->Animator->SetState(state);
     lastState = state;
     
-    
-    
     // Map collisions
     olc::vi2d currentTile = { static_cast<int>(Player->Coords.x / TileSize), static_cast<int>(Player->Coords.y / TileSize) };
     
@@ -451,7 +449,7 @@ void Dungeon::Input(olc::PixelGameEngine* engine, float fTime)
     
     // Passes ownership back
     CollisionInfo collisionInfo;
-    bool colliding = EntityCollide(Player, nearbyCollidables, TileSize, &collisionInfo, engine);
+    bool colliding = EntityCollideDungeon(Player, nearbyCollidables, TileSize, &collisionInfo, engine);
     
     // collision response
     if (colliding)
@@ -482,8 +480,16 @@ float vecDistance(T v1, T v2)
 void Dungeon::Update(olc::PixelGameEngine* engine, float fTime)
 {
     ActiveCamera->Update(fTime);
+    CollisionTick(engine);
     
     if (!HasBegun) return;
+    
+    engine->SetDrawTarget(1);
+    
+    int enemyBoundsLeft   = static_cast<int>(Player->Coords.x - (1280.0f / 2.0f));
+    int enemyBoundsTop    = static_cast<int>(Player->Coords.y - (720.0f / 2.0f));
+    int enemyBoundsRight  = enemyBoundsLeft + 1280.0f;
+    int enemyBoundsBottom = enemyBoundsTop + 720.0f;
     
     // spawn enemies
     if (rand() % 100 < 1)
@@ -492,11 +498,22 @@ void Dungeon::Update(olc::PixelGameEngine* engine, float fTime)
         enemy->Type = EEntity::Type::Enemy;
         enemy->Renderable = EnemyRenderable;
         enemy->Animator = EnemyAnimator;
-        enemy->Coords = { static_cast<float>(((float)rand() / (float)RAND_MAX) * 1280.0f), static_cast<float>(((float)rand() / (float)RAND_MAX) * 720.0f) };
+        
+        // This is naive I KNOW. fuck off
+        // stops integer divisions by 0
+        if (enemyBoundsLeft == 0) enemyBoundsLeft = 1;
+        if (enemyBoundsTop == 0) enemyBoundsTop = 1;
+        
+        auto rangedRand = [](float min, float max) -> int {
+            return static_cast<int>(min) + rand() % ((static_cast<int>(max) + 1) - static_cast<int>(min));
+        };
+        
+        enemy->Coords = { static_cast<float>(rangedRand(enemyBoundsLeft, enemyBoundsRight)), static_cast<float>(rangedRand(enemyBoundsTop, enemyBoundsBottom) ) };
+        
         enemy->dxdy = { static_cast<float>(rand() % 10 - 5), static_cast<float>(rand() % 10 - 5) };
         
         float distanceFromPlayer = vecDistance(Player->Coords, enemy->Coords);
-        _Logger.Debug(enemy->Coords.x, " ", enemy->Coords.y); 
+        _Logger.Debug(enemy->Coords.x, " ", enemy->Coords.y, " ", distanceFromPlayer);
         if (distanceFromPlayer > 100)
         {
             enemy->HitBox = new Collider{ 0, 0, 28, 36 };
@@ -514,6 +531,8 @@ void Dungeon::Update(olc::PixelGameEngine* engine, float fTime)
     for (auto enemy : Enemies)
     {
         enemy->dxdy =  static_cast<float>(TileSize) * (fTime * (Player->Speed / 1.5f) * olc::vf2d(desiredLocation - enemy->Coords).norm());
+        
+        EntityCollide(Player, enemy, engine);
         
         enemy->Coords += enemy->dxdy;
     }
@@ -539,7 +558,6 @@ void Dungeon::Draw(olc::PixelGameEngine* engine, float fTime)
     
     // Dungeon Layer
     engine->SetDrawTarget(4);
-    engine->Clear({38, 36, 40});
     
     engine->SetPixelMode(olc::Pixel::ALPHA);
     for (std::pair<olc::vi2d, Tile*> tile : DungeonTiles)
@@ -549,7 +567,6 @@ void Dungeon::Draw(olc::PixelGameEngine* engine, float fTime)
     
     // Entity Layer
     engine->SetDrawTarget(3);
-    engine->Clear(olc::BLANK);
     
     // Draw character
     Player->Animator->Draw(fTime, {Player->Coords.x - ActiveCamera->Coords.x, Player->Coords.y - ActiveCamera->Coords.y});
@@ -562,7 +579,6 @@ void Dungeon::Draw(olc::PixelGameEngine* engine, float fTime)
     
     // Lighting layers
     engine->SetDrawTarget(2);
-    engine->Clear(olc::BLANK);
     
     static bool WasFireLit = false;
     static bool HasFireLit = false;
@@ -631,7 +647,6 @@ void Dungeon::Draw(olc::PixelGameEngine* engine, float fTime)
     
     // UI Layer
     engine->SetDrawTarget(1);
-    engine->Clear(olc::BLANK);
     
     engine->DrawString({15, 15}, std::to_string(Enemies.size()), olc::WHITE, 5);
     

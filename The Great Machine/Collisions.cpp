@@ -5,18 +5,21 @@
 #include "Camera.hpp"
 #include "Collisions.hpp"
 
-bool EntityCollide(Entity* entity, std::vector<Tile*>& nearby, int tileSize, CollisionInfo* info, olc::PixelGameEngine* engine)
+static bool ShowCollisionDebug = false;
+
+void CollisionTick(olc::PixelGameEngine* engine)
 {
-    static bool ShowCollisionDebug = false;
     if (engine->GetKey(olc::P).bPressed)
         ShowCollisionDebug = !ShowCollisionDebug;
-    
+}
+
+bool EntityCollideDungeon(Entity* entity, std::vector<Tile*>& nearby, int tileSize, CollisionInfo* info, olc::PixelGameEngine* engine)
+{
     if (!entity->HitBox) return false;
     
     static Logger& _Logger = Logger::getInstance();
     
     engine->SetDrawTarget(1);
-    engine->Clear(olc::BLANK);
     
     float entityX = static_cast<float>(entity->Coords.x - entity->TrackingCamera->Coords.x);
     float entityY = static_cast<float>(entity->Coords.y - entity->TrackingCamera->Coords.y);
@@ -66,5 +69,36 @@ bool EntityCollide(Entity* entity, std::vector<Tile*>& nearby, int tileSize, Col
     }
     
     return false;
+}
+
+bool EntityCollide(Entity* e1, Entity* e2, olc::PixelGameEngine* engine)
+{
+    if (!e1->HitBox || !e2->HitBox) return false;
+    
+    static Logger& _Logger = Logger::getInstance();
+    
+    engine->SetDrawTarget(1);
+    
+    float e1X = static_cast<float>((e1->Coords.x - e1->TrackingCamera->Coords.x) + static_cast<float>(e1->HitBox->x));
+    float e1Y = static_cast<float>((e1->Coords.y - e1->TrackingCamera->Coords.y) + static_cast<float>(e1->HitBox->y));
+    float e1W = static_cast<float>(e1->HitBox->w);
+    float e1H = static_cast<float>(e1->HitBox->h);
+    
+    float e2X = static_cast<float>((e2->Coords.x - e1->TrackingCamera->Coords.x) + static_cast<float>(e2->HitBox->x));
+    float e2Y = static_cast<float>((e2->Coords.y - e1->TrackingCamera->Coords.y) + static_cast<float>(e2->HitBox->y));
+    float e2W = static_cast<float>(e2->HitBox->w);
+    float e2H = static_cast<float>(e2->HitBox->h);
+    
+    bool xOverlaps = (e1X <= e2X + e2W) && (e1X + e1W >= e2X);
+    bool yOverlaps = (e1Y <= e2Y + e2H) && (e1Y + e1H >= e2Y);
+    
+    bool collision = xOverlaps && yOverlaps;
+    if (ShowCollisionDebug)
+    {
+        engine->DrawRect(e1X, e1Y, e1W, e1H, collision ? olc::BLUE : olc::RED); 
+        engine->DrawRect(e2X, e2Y, e2W, e2H, collision ? olc::BLUE : olc::RED);
+    }
+    
+    return collision;
 }
 
