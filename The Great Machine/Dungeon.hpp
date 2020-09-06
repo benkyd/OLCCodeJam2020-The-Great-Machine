@@ -26,9 +26,9 @@ class Dungeon
     
 	void Input(olc::PixelGameEngine* engine, float fTime);
 	void Update(olc::PixelGameEngine* engine, float fTime);
-	void Draw(olc::PixelGameEngine* engine);
+	void Draw(olc::PixelGameEngine* engine, float fTime);
     
-	Playable* Player;
+    Playable* Player;
 	Camera* ActiveCamera;
     
 	int TileSize = 64;
@@ -41,7 +41,6 @@ class Dungeon
     
 	TileDictionary* TileSetDictionary;
 	olc::Renderable* TileSet;
-    
     olc::Renderable* FireOverlay;
     
 	~Dungeon();

@@ -59,5 +59,8 @@
     <ClInclude Include="UI.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="olcPGEX_AnimatedSprite.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

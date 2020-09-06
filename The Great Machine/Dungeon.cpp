@@ -3,14 +3,73 @@
 #include <algorithm>
 #include <sstream>
 
+#include "olcPixelGameEngine.hpp"
+#include "olcPGEX_AnimatedSprite.hpp"
+
 #include "Collisions.hpp"
 #include "Things.hpp"
 #include "Camera.hpp"
 #include "Logger.hpp"
 
+
+void PerlinNoise1D(int nCount, float *fSeed, int nOctaves, float fBias, float *fOutput)
+{
+    // Used 1D Perlin Noise
+    for (int x = 0; x < nCount; x++)
+    {
+        float fNoise = 0.0f;
+        float fScaleAcc = 0.0f;
+        float fScale = 1.0f / fBias;
+        
+        for (int o = 0; o < nOctaves; o++)
+        {
+            int nPitch = nCount >> o;
+            int nSample1 = (x / nPitch) * nPitch;
+            int nSample2 = (nSample1 + nPitch) % nCount;
+            
+            float fBlend = (float)(x - nSample1) / (float)nPitch;
+            
+            float fSample = (1.0f - fBlend) * fSeed[nSample1] + fBlend * fSeed[nSample2];
+            
+            fScaleAcc += fScale;
+            fNoise += fSample * fScale;
+            // fScale = fScale / fBias;
+        }
+        
+        // Scale to seed range
+        fOutput[x] = fNoise / fScaleAcc;
+    }
+}
+
+static int perlinSize = 10000;
+static float* perlinSeed;
+static float* perlinOutput;
+
+void SetupPerlin()
+{
+    perlinSeed = (float*)malloc(sizeof(float) * perlinSize);
+    perlinOutput = (float*)malloc(sizeof(float) * perlinSize);
+    for (int i = 0; i < perlinSize; i++)
+        perlinSeed[i] = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+    
+    PerlinNoise1D(perlinSize, perlinSeed, 8, 2.0f, perlinOutput);
+}
+
+float GetNextPerlin()
+{
+    static int i = 0;
+    i++;
+    if (i > perlinSize)
+        i = 0;
+    return perlinOutput[i];
+}
+
+
 Dungeon::Dungeon()
 : _Logger(Logger::getInstance())
 {
+    SetupPerlin();
+    
 	ActiveCamera = new Camera();
 	ActiveCamera->Coords = { 0, 0 };
 	ActiveCamera->ViewPort = { 1280, 720 };
@@ -21,7 +80,45 @@ Dungeon::Dungeon()
     Player->Type = EEntity::Type::Player;
     // Relative to player TL corner
     // not really used ? lol
-    Player->HitBox = new Collider{ 0, 0, static_cast<int>((static_cast<float>(TileSize) / 3.0f) * 2.0f), static_cast<int>((static_cast<float>(TileSize) / 3.0f) * 2.0f) } ;
+    Player->HitBox = new Collider{ 0, 0, 28, 36 } ;
+    
+    Player->Renderable = new olc::Renderable();
+    Player->Renderable->Load("res/player.png");
+    Player->Animator = new olc::AnimatedSprite();
+    Player->Animator->mode = olc::AnimatedSprite::SPRITE_MODE::SINGLE;
+    Player->Animator->type = olc::AnimatedSprite::SPRITE_TYPE::DECAL;
+    Player->Animator->spriteSheet = Player->Renderable;
+    Player->Animator->SetSpriteSize({28, 36});
+    
+    Player->Animator->AddState("idle", std::vector<olc::vi2d>{
+                                   {28, 0}
+                               });
+    
+    Player->Animator->AddState("north", std::vector<olc::vi2d>{
+                                   {0, 110},
+                                   {28, 110},
+                                   {56, 110},
+                                   {84, 110}
+                               });
+    Player->Animator->AddState("east", std::vector<olc::vi2d>{
+                                   {0, 36},
+                                   {28, 36},
+                                   {56, 36},
+                                   {84, 36}
+                               });
+    Player->Animator->AddState("south", std::vector<olc::vi2d>{
+                                   {0, 0},
+                                   {28, 0},
+                                   {56, 0},
+                                   {84, 0}
+                               });
+    Player->Animator->AddState("west", std::vector<olc::vi2d>{
+                                   {0, 72},
+                                   {28, 72},
+                                   {56, 72},
+                                   {84, 72}
+                               });
+    Player->Animator->SetState("idle");
     
     ActiveCamera->TrackEntity(Player);
     ActiveCamera->Update(0.0f);
@@ -193,37 +290,75 @@ void Dungeon::SpawnEntity(Entity* entity)
 
 void Dungeon::Input(olc::PixelGameEngine* engine, float fTime)
 {
+    
     olc::vf2d oldCoords = Player->Coords;
     
+    static std::string state = "idle";
+    static std::string lastState = "idle";
+    
     if (engine->GetKey(olc::W).bHeld)
+    {
         Player->Coords.y -= static_cast<float>(TileSize) * (fTime * Player->Speed);
+        if (state != "north")
+            state = "north";
+    }
     if (engine->GetKey(olc::A).bHeld)
+    {
         Player->Coords.x -= static_cast<float>(TileSize) * (fTime * Player->Speed);
+        if (state != "west")
+            state = "west";
+    }
     if (engine->GetKey(olc::S).bHeld)
+    {
         Player->Coords.y += static_cast<float>(TileSize) * (fTime * Player->Speed);
+        if (state != "south")
+            state = "south";
+    }
     if (engine->GetKey(olc::D).bHeld)
+    {
         Player->Coords.x += static_cast<float>(TileSize) * (fTime * Player->Speed);
+        if (state != "east")
+            state = "east";
+    }
     
     if (engine->GetKey(olc::W).bHeld && engine->GetKey(olc::A).bHeld)
     {
         Player->Coords.y += static_cast<float>(TileSize) * (fTime * (Player->Speed / 3.0f));
         Player->Coords.x += static_cast<float>(TileSize) * (fTime * (Player->Speed / 3.0f));
+        if (state != "west")
+            state = "west";
+        
     }
     if (engine->GetKey(olc::W).bHeld && engine->GetKey(olc::D).bHeld)
     {
         Player->Coords.y += static_cast<float>(TileSize) * (fTime * (Player->Speed / 3.0f));
         Player->Coords.x -= static_cast<float>(TileSize) * (fTime * (Player->Speed / 3.0f));
+        if (state != "east")
+            state = "east";
+        
     }
     if (engine->GetKey(olc::S).bHeld && engine->GetKey(olc::D).bHeld)
     {
         Player->Coords.y -= static_cast<float>(TileSize) * (fTime * (Player->Speed / 3.0f));
         Player->Coords.x -= static_cast<float>(TileSize) * (fTime * (Player->Speed / 3.0f));
+        if (state != "east")
+            state = "east";
     }
     if (engine->GetKey(olc::S).bHeld && engine->GetKey(olc::A).bHeld)
     {
         Player->Coords.y -= static_cast<float>(TileSize) * (fTime * (Player->Speed / 3.0f));
         Player->Coords.x += static_cast<float>(TileSize) * (fTime * (Player->Speed / 3.0f));
+        if (state != "west")
+            state = "west";
     }
+    
+    if (oldCoords == Player->Coords)
+        state = "idle";
+    if (state != lastState)
+        Player->Animator->SetState(state);
+    lastState = state;
+    
+    
     
     // Map collisions
     olc::vi2d currentTile = { static_cast<int>(Player->Coords.x / TileSize), static_cast<int>(Player->Coords.y / TileSize) };
@@ -304,7 +439,7 @@ olc::Pixel pixelMultiply(const int x, const int y, const olc::Pixel& pSource, co
     return ret;
 }
 
-void Dungeon::Draw(olc::PixelGameEngine* engine)
+void Dungeon::Draw(olc::PixelGameEngine* engine, float fTime)
 {
     // Maps not gonna be big enough for me to care about optimistaion
     // maybe i should care? i don't
@@ -312,57 +447,65 @@ void Dungeon::Draw(olc::PixelGameEngine* engine)
     // Entities are always (tilesize / 3) * 2
     
     // Dungeon Layer
-    engine->SetDrawTarget(4);
+    engine->SetDrawTarget(3);
     engine->Clear({38, 36, 40});
     
     engine->SetPixelMode(olc::Pixel::ALPHA);
     for (std::pair<olc::vi2d, Tile*> tile : DungeonTiles)
-    {
-        // if (tile.second->Type == ETile::Type::Void) continue;
         
         engine->DrawPartialDecal({ static_cast<float>((tile.first.x * TileSize) - ActiveCamera->Coords.x), static_cast<float>((tile.first.y * TileSize) - ActiveCamera->Coords.y) },
                                  { static_cast<float>(TileSize), static_cast<float>(TileSize) }, TileSet->Decal(), TileSetDictionary->Dictionary[tile.second->Type], { 16, 16 });
-    }
     
-    // engine->SetPixelMode(olc::Pixel::NORMAL);
     
     // Entity Layer
-    engine->SetDrawTarget(3);
+    engine->SetDrawTarget(2);
     engine->Clear(olc::BLANK);
     
     // Draw character
-    engine->DrawPartialDecal({ static_cast<float>(Player->Coords.x - ActiveCamera->Coords.x), static_cast<float>(Player->Coords.y - ActiveCamera->Coords.y) },
-                             { (static_cast<float>(TileSize) / 3.0f) * 2.0f, (static_cast<float>(TileSize) / 3.0f) * 2.0f }, TileSet->Decal(), { 143, 130 }, { 16, 16 });
+    Player->Animator->Draw(fTime, {Player->Coords.x - ActiveCamera->Coords.x, Player->Coords.y - ActiveCamera->Coords.y});
     
     // Lighting layers
-    engine->SetDrawTarget(2);
+    engine->SetDrawTarget(1);
     engine->Clear(olc::BLANK);
     
     static std::function<olc::Pixel(const int x, const int y, const olc::Pixel& pSource, const olc::Pixel& pDest)> fPixelMultiply = pixelMultiply;
     
-    float lightX = static_cast<float>(Player->Coords.x - ActiveCamera->Coords.x) - (FireOverlay->Sprite()->width / 2.0f);
-    float lightY = static_cast<float>(Player->Coords.y - ActiveCamera->Coords.y) - (FireOverlay->Sprite()->height / 2.0f);
+    // loads to make it more chaotic
+    float lightScale = 1.4f + GetNextPerlin(); GetNextPerlin(); GetNextPerlin(); GetNextPerlin(); GetNextPerlin();
     
-    float lightLeft = lightX;
-    float lightRight = lightX + FireOverlay->Sprite()->width;
-    float lightTop = lightY;
-    float lightBottom = lightY + FireOverlay->Sprite()->height;
+    float lightX = static_cast<float>(Player->Coords.x - ActiveCamera->Coords.x) - ((FireOverlay->Sprite()->width * lightScale) / 2.0f);
+    float lightY = static_cast<float>(Player->Coords.y - ActiveCamera->Coords.y) - ((FireOverlay->Sprite()->height * lightScale) / 2.0f);
+    
+    float lightLeft   = lightX + 1.0f;
+    float lightRight  = lightX + FireOverlay->Sprite()->width * lightScale - 1.0f;
+    float lightTop    = lightY + 1.0f;
+    float lightBottom = lightY + FireOverlay->Sprite()->height * lightScale - 1.0f;
+    
+    // orange tint
+    engine->FillRectDecal({0.0f, 0.0f}, {static_cast<float>(engine->ScreenWidth()), static_cast<float>(engine->ScreenHeight())}, olc::Pixel(255, 123, 0, 30));
     
     engine->SetPixelMode(fPixelMultiply);
-    engine->DrawDecal({ lightX, lightY }, FireOverlay->Decal());
+    engine->DrawDecal({ lightX, lightY }, FireOverlay->Decal(), {lightScale, lightScale}, olc::RED);
+    engine->SetPixelMode(olc::Pixel::ALPHA);
     
-    engine->SetDrawTarget(1);
-    engine->Clear(olc::BLANK);
-    // top 
-    
-    engine->FillRect({0, static_cast<int>(lightTop)}, {engine->ScreenWidth(), engine->ScreenHeight()}, olc::BLACK);  
-    
+    // top
+    engine->FillRectDecal({0.0f, 0.0f}, {static_cast<float>(engine->ScreenWidth()), lightTop}, olc::BLACK);  
+    // right
+    engine->FillRectDecal({lightRight, 0.0f}, {static_cast<float>(engine->ScreenWidth()) - lightRight, static_cast<float>(engine->ScreenHeight())}, olc::BLACK); 
+    // bottom
+    engine->FillRectDecal({0.0f, lightBottom}, {static_cast<float>(engine->ScreenWidth()), static_cast<float>(engine->ScreenHeight()) - lightBottom}, olc::BLACK);
+    // left
+    engine->FillRectDecal({0.0f, 0.0f}, {lightLeft, static_cast<float>(engine->ScreenHeight())}, olc::BLACK);
     
 }
 
 Dungeon::~Dungeon()
 {
+    delete Player->HitBox;
+    delete Player->Renderable;
+    delete Player->Animator;
     delete Player;
+    
     delete ActiveCamera;
     delete TileSetDictionary;
     delete TileSet;
@@ -372,4 +515,7 @@ Dungeon::~Dungeon()
         delete entity.second;
     for (std::pair<olc::vi2d, FixedItem*> entity : FixedItems)
         delete entity.second;
+    
+    free(perlinSeed);
+    free(perlinOutput);
 }

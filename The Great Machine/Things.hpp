@@ -5,6 +5,7 @@
 #include <array>
 
 #include "olcPixelGameEngine.hpp"
+#include "olcPGEX_AnimatedSprite.hpp"
 
 class Camera;
 
@@ -101,9 +102,10 @@ class Entity
 	olc::vf2d Coords;
 	EEntity::Type Type;
 	Collider* HitBox;
+    // Does not own
     Camera* TrackingCamera;
-	olc::vf2d SpriteTextureMask;
-	olc::Renderable* SpriteMap;
+	olc::Renderable* Renderable;
+    olc::AnimatedSprite* Animator; 
 };
 
 class Item : public Entity
@@ -122,7 +124,7 @@ class FixedItem : public Entity
 class Playable : public Entity
 {
     public:
-	float Speed = 10.0f;
+	float Speed = 4.0f;
     int SelectedInventoryItem = 0;
 	std::array<Item*, 6> Inventory;
 };

@@ -7,6 +7,10 @@
 
 bool EntityCollide(Entity* entity, std::vector<Tile*>& nearby, int tileSize, CollisionInfo* info, olc::PixelGameEngine* engine)
 {
+    static bool ShowCollisionDebug = false;
+    if (engine->GetKey(olc::P).bPressed)
+        ShowCollisionDebug = !ShowCollisionDebug;
+    
     if (!entity->HitBox) return false;
     
     static Logger& _Logger = Logger::getInstance();
@@ -16,19 +20,21 @@ bool EntityCollide(Entity* entity, std::vector<Tile*>& nearby, int tileSize, Col
     
     float entityX = static_cast<float>(entity->Coords.x - entity->TrackingCamera->Coords.x);
     float entityY = static_cast<float>(entity->Coords.y - entity->TrackingCamera->Coords.y);
-    float entityW = static_cast<float>(tileSize / 3.0f) * 2.0f;
-    float entityH = static_cast<float>(tileSize / 3.0f) * 2.0f;
+    float entityW = static_cast<float>(entity->HitBox->w);
+    float entityH = static_cast<float>(entity->HitBox->h);
     
     int entityLeft   = static_cast<int>(entityX);
     int entityRight  = static_cast<int>(entityX + entityW);
     int entityTop    = static_cast<int>(entityY);
     int entityBottom = static_cast<int>(entityY + entityH);
     
-    //engine->DrawRect({(entity->HitBox->x + (int)entity->Coords.x) - (int)entity->TrackingCamera->Coords.x, (entity->HitBox->y + (int)entity->Coords.y) - (int)entity->TrackingCamera->Coords.y}, {entity->HitBox->w, entity->HitBox->h}, olc::RED); 
+    if (ShowDebug)
+        engine->DrawRect(entityX, entityY, entityW, entityH, olc::RED); 
     
     for (auto tile : nearby)
     {
-        //engine->DrawRect({ static_cast<int>(static_cast<float>((tile->Coords.x * tileSize) - entity->TrackingCamera->Coords.x)), static_cast<int>(static_cast<float>((tile->Coords.y * tileSize) - entity->TrackingCamera->Coords.y)) }, {tileSize, tileSize}, olc::BLUE);
+        if (ShowDebug)
+            engine->DrawRect({ static_cast<int>(static_cast<float>((tile->Coords.x * tileSize) - entity->TrackingCamera->Coords.x)), static_cast<int>(static_cast<float>((tile->Coords.y * tileSize) - entity->TrackingCamera->Coords.y)) }, {tileSize, tileSize}, olc::BLUE);
         
         // return if not collidable
         if (!tile->IsSolid) continue;
@@ -45,7 +51,8 @@ bool EntityCollide(Entity* entity, std::vector<Tile*>& nearby, int tileSize, Col
         
         bool collision = xOverlaps && yOverlaps;
         
-        //engine->FillRect({static_cast<int>(static_cast<float>((tile->Coords.x * tileSize) - entity->TrackingCamera->Coords.x)), static_cast<int>(static_cast<float>((tile->Coords.y * tileSize) - entity->TrackingCamera->Coords.y))}, {tileSize, tileSize}, collision ? olc::RED : olc::BLUE);
+        if (ShowDebug)
+            engine->FillRect({static_cast<int>(static_cast<float>((tile->Coords.x * tileSize) - entity->TrackingCamera->Coords.x)), static_cast<int>(static_cast<float>((tile->Coords.y * tileSize) - entity->TrackingCamera->Coords.y))}, {tileSize, tileSize}, collision ? olc::RED : olc::BLUE);
         
         if (!collision) continue;
         
@@ -59,6 +66,5 @@ bool EntityCollide(Entity* entity, std::vector<Tile*>& nearby, int tileSize, Col
     }
     
     return false;
-    
 }
 

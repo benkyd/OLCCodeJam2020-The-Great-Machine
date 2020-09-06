@@ -154,6 +154,7 @@
     <ClInclude Include="Collisions.hpp" />
     <ClInclude Include="Dungeon.hpp" />
     <ClInclude Include="Logger.hpp" />
+    <ClInclude Include="olcPGEX_AnimatedSprite.hpp" />
     <ClInclude Include="olcPixelGameEngine.hpp" />
     <ClInclude Include="Things.hpp" />
     <ClInclude Include="UI.hpp" />

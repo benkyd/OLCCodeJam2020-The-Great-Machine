@@ -2,6 +2,8 @@
 
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.hpp"
+#define OLC_PGEX_ANIMSPR
+#include "olcPGEX_AnimatedSprite.hpp"
 
 #include "Dungeon.hpp"
 
@@ -60,7 +62,7 @@ class Game : public olc::PixelGameEngine
         
 		_Dungeon->Update(this, fTime);
         
-		_Dungeon->Draw(this);
+		_Dungeon->Draw(this, fTime);
         
         for (int i = 0; i < 5; i++)
             EnableLayer(i, true);

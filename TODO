@@ -4,12 +4,12 @@
 
 # Today
 
-[-] Lighting (and torches)
-[ ] Lighting flicker (fire)
-[ ] NO TIME raytraced lighting
-[ ] Fix collision
-[ ] Better player spritesheet
-[ ] Animation system
+[x] Lighting (and torches)
+[x] Lighting flicker (fire)
+[d] Raytraced lighting
+[d] Fix collision
+[x] Better player spritesheet
+[x] Animation system
 [ ] Enemies / AI
 [ ] Dungeon fixed entity spawning
 [ ] Enemy AI
