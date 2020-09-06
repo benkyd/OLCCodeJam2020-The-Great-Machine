@@ -19,7 +19,7 @@ bool EntityCollideDungeon(Entity* entity, std::vector<Tile*>& nearby, int tileSi
     
     static Logger& _Logger = Logger::getInstance();
     
-    engine->SetDrawTarget(1);
+    engine->SetDrawTarget(uint8_t(0));
     
     float entityX = static_cast<float>(entity->Coords.x - entity->TrackingCamera->Coords.x);
     float entityY = static_cast<float>(entity->Coords.y - entity->TrackingCamera->Coords.y);
@@ -77,7 +77,7 @@ bool EntityCollide(Entity* e1, Entity* e2, olc::PixelGameEngine* engine)
     
     static Logger& _Logger = Logger::getInstance();
     
-    engine->SetDrawTarget(1);
+    engine->SetDrawTarget(uint8_t(0));
     
     float e1X = static_cast<float>((e1->Coords.x - e1->TrackingCamera->Coords.x) + static_cast<float>(e1->HitBox->x));
     float e1Y = static_cast<float>((e1->Coords.y - e1->TrackingCamera->Coords.y) + static_cast<float>(e1->HitBox->y));

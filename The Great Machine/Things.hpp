@@ -124,7 +124,7 @@ class FixedItem : public Entity
 class Playable : public Entity
 {
     public:
-    int Health = 100;
+    int Life = 7;
 	float Speed = 4.0f;
     int SelectedInventoryItem = 0;
 	std::array<Item*, 6> Inventory;

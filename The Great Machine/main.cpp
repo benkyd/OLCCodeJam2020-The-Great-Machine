@@ -49,16 +49,16 @@ class Game : public olc::PixelGameEngine
         Clear({38, 36, 40});
         // _Logger.Debug(m_TimeAccumilator);
         
+        SetDrawTarget(4);
+        Clear({38, 36, 40});
+        SetDrawTarget(1);
+        Clear(olc::BLANK);
+        SetDrawTarget(2);
+        Clear(olc::BLANK);
+        SetDrawTarget(3);
+        Clear(olc::BLANK);
         SetDrawTarget(uint8_t(0));
         Clear(olc::BLANK);
-        SetDrawTarget(uint8_t(1));
-        Clear(olc::BLANK);
-        SetDrawTarget(uint8_t(2));
-        Clear(olc::BLANK);
-        SetDrawTarget(uint8_t(3));
-        Clear(olc::BLANK);
-        SetDrawTarget(uint8_t(4));
-        Clear({38, 36, 40});
         
         goto bruh;
         

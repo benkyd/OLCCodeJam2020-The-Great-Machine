@@ -32,6 +32,8 @@ class Dungeon
 	void Draw(olc::PixelGameEngine* engine, float fTime);
     
     bool HasBegun = false;
+    bool IsAlive = true;
+    bool HasWon = false;
     
     Playable* Player;
 	Camera* ActiveCamera;
@@ -49,6 +51,8 @@ class Dungeon
 	TileDictionary* TileSetDictionary;
 	olc::Renderable* TileSet;
     olc::Renderable* FireOverlay;
+    
+    olc::Renderable* Lives;
     
     bool IsFireLit = false;
     bool IsLightOn = true;

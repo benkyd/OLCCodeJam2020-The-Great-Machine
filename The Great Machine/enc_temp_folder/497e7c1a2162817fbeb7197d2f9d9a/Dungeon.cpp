@@ -81,7 +81,7 @@ Dungeon::Dungeon()
     // not really used ? lol
     Player->HitBox = new Collider{ 0, 0, 28, 36 };
     
-    Lives = new olc::Renderable();
+    
     
     EnemyRenderable = new olc::Renderable();
     EnemyRenderable->Load("res/player.png");
@@ -167,6 +167,7 @@ Dungeon::Dungeon()
     SoundFootsteps.setBuffer(SoundBufferFootsteps);
     SoundFootsteps.setLoop(true);
     SoundFootsteps.setVolume(20.f);
+    
     
 }
 
