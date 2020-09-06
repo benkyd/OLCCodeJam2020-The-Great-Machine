@@ -495,7 +495,7 @@ void Dungeon::Update(olc::PixelGameEngine* engine, float fTime)
     olc::vf2d desiredLocation = Player->Coords;
     for (auto enemy : Enemies)
     {
-        enemy->Velocity =  static_cast<float>(TileSize) * (fTime * (Player->Speed / 3.0f) * olc::vf2d(desiredLocation - enemy->Coords).norm());
+        enemy->Velocity =  static_cast<float>(TileSize) * (fTime * (Player->Speed / 1.5f) * olc::vf2d(desiredLocation - enemy->Coords).norm());
         
         enemy->Coords += enemy->Velocity;
     }
@@ -538,7 +538,6 @@ void Dungeon::Draw(olc::PixelGameEngine* engine, float fTime)
     
     for (int i = 0; i < Enemies.size(); i++)
     {
-        _Logger.Debug(i);
         Enemies[i]->Animator->SetState("idle");
         Enemies[i]->Animator->Draw(fTime, {Enemies[i]->Coords.x - ActiveCamera->Coords.x, Enemies[i]->Coords.y - ActiveCamera->Coords.y});
     }

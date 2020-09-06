@@ -51,7 +51,8 @@ class Game : public olc::PixelGameEngine
         
         SetDrawTarget(uint8_t(0));
         Clear(olc::BLANK);
-        goto bruh;
+        
+        // goto bruh;
         
         if (_TimeAccumilator < 6.0f)
         {
@@ -88,15 +89,19 @@ class Game : public olc::PixelGameEngine
                     _DeltaFade1 -= fTime * 200.0f;
                     if (_DeltaFade1 < 0.1f) _DeltaFade1 = 0.0f;
                 }
-                
+                // TODO: Center these omd
                 SetPixelMode(olc::Pixel::ALPHA);
                 if (_TimeAccumilator > 16.0f)
-                    DrawString((ScreenWidth() / 2) - (7 * 3) * (std::string("the machine has done nothing for me").length() / 2), 40, "the machine has done nothing for me", olc::Pixel(255, 255, 255, static_cast<int>(_DeltaFade1)), 3);
+                    DrawString((ScreenWidth() / 2) - (7 * 4) * (std::string("the machine has done nothing for me").length() / 2), 40, "the machine has done nothing for me", olc::Pixel(255, 255, 255, static_cast<int>(_DeltaFade1)), 3);
                 if (_TimeAccumilator > 20.0f)
-                    DrawString((ScreenWidth() / 2) - (7 * 3) * (std::string("the machine has left me with nothing").length() / 2), 120, "the machine has left me with nothing", olc::Pixel(255, 255, 255, static_cast<int>(_DeltaFade1)), 3);
+                    DrawString((ScreenWidth() / 2) - (7 * 4) * (std::string("the machine has left me with nothing").length() / 2), 120, "the machine has left me with nothing", olc::Pixel(255, 255, 255, static_cast<int>(_DeltaFade1)), 3);
                 if (_TimeAccumilator > 23.0f)
-                    DrawString((ScreenWidth() / 2) - (7 * 5) * (std::string("i am nothing").length() / 2), 300, "i am nothing", olc::Pixel(255, 255, 255, static_cast<int>(_DeltaFade1)), 5);
+                    
+                    DrawString((ScreenWidth() / 2) - (7 * 7) * (std::string("i am nothing").length() / 2), 300, "i am nothing", olc::Pixel(255, 255, 255, static_cast<int>(_DeltaFade1)), 6);
+                if (_TimeAccumilator > 25.0f)
+                    DrawString((ScreenWidth() / 2) - (7 * 3) * (std::string("your demons can't survive the dark").length() / 2), 650, "your demons can't survive the dark", olc::Pixel(255, 255, 255, static_cast<int>(_DeltaFade1)), 2);
             }
+            
         }
         
         if (_TimeAccumilator > 26.0f)
@@ -116,7 +121,7 @@ class Game : public olc::PixelGameEngine
             EnableLayer(i, true);
         
         return true;
-	}
+    }
     
     bool OnUserDestroy() override
     {
@@ -125,9 +130,9 @@ class Game : public olc::PixelGameEngine
     }
     
     private:
-	long float _TimeAccumilator = 0.0f;
+    long float _TimeAccumilator = 0.0f;
     
-	float _DeltaFade = 255.0f;
+    float _DeltaFade = 255.0f;
     float _DeltaFade1 = 255.0f;
 };
 

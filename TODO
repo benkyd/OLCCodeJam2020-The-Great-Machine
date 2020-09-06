@@ -11,8 +11,8 @@
 [x] Better player spritesheet
 [x] Animation system
 [x] Sound
-[ ] Enemies / AI
-[ ] Dungeon fixed entity spawning
-[ ] Enemy AI
-[ ] Gameplay
+[x] Enemies / AI
+[x] Dungeon fixed entity spawning
+[x] Enemy AI
+[ ] Gameplay - Enemies can't survive the dark
 
