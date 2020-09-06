@@ -129,6 +129,12 @@ class Playable : public Entity
 	std::array<Item*, 6> Inventory;
 };
 
+class Enemy : public Entity
+{
+    public:
+    olc::vf2d Velocity = { 0.0f, 0.0f };
+};
+
 
 class TileDictionary
 {

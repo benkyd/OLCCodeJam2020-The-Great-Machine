@@ -14,7 +14,6 @@
 
 void PerlinNoise1D(int nCount, float *fSeed, int nOctaves, float fBias, float *fOutput)
 {
-    // Used 1D Perlin Noise
     for (int x = 0; x < nCount; x++)
     {
         float fNoise = 0.0f;
@@ -80,7 +79,21 @@ Dungeon::Dungeon()
     Player->Type = EEntity::Type::Player;
     // Relative to player TL corner
     // not really used ? lol
-    Player->HitBox = new Collider{ 0, 0, 28, 36 } ;
+    Player->HitBox = new Collider{ 0, 0, 28, 36 };
+    
+    EnemyRenderable = new olc::Renderable();
+    EnemyRenderable->Load("res/player.png");
+    EnemyAnimator = new olc::AnimatedSprite();
+    EnemyAnimator->mode = olc::AnimatedSprite::SPRITE_MODE::SINGLE;
+    EnemyAnimator->type = olc::AnimatedSprite::SPRITE_TYPE::DECAL;
+    EnemyAnimator->spriteSheet = EnemyRenderable;
+    EnemyAnimator->SetSpriteSize({28, 36});
+    
+    EnemyAnimator->AddState("idle", 0.127f, olc::AnimatedSprite::PLAY_MODE::LOOP, std::vector<olc::vi2d>{
+                                {28, 0}
+                            });
+    EnemyAnimator->SetState("idle");
+    
     
     Player->Renderable = new olc::Renderable();
     Player->Renderable->Load("res/player.png");
@@ -90,29 +103,29 @@ Dungeon::Dungeon()
     Player->Animator->spriteSheet = Player->Renderable;
     Player->Animator->SetSpriteSize({28, 36});
     
-    Player->Animator->AddState("idle", std::vector<olc::vi2d>{
+    Player->Animator->AddState("idle", 0.127f, olc::AnimatedSprite::PLAY_MODE::LOOP, std::vector<olc::vi2d>{
                                    {28, 0}
                                });
     
-    Player->Animator->AddState("north", std::vector<olc::vi2d>{
+    Player->Animator->AddState("north", 0.127f, olc::AnimatedSprite::PLAY_MODE::LOOP, std::vector<olc::vi2d>{
                                    {0, 110},
                                    {28, 110},
                                    {56, 110},
                                    {84, 110}
                                });
-    Player->Animator->AddState("east", std::vector<olc::vi2d>{
+    Player->Animator->AddState("east", 0.127f, olc::AnimatedSprite::PLAY_MODE::LOOP, std::vector<olc::vi2d>{
                                    {0, 36},
                                    {28, 36},
                                    {56, 36},
                                    {84, 36}
                                });
-    Player->Animator->AddState("south", std::vector<olc::vi2d>{
+    Player->Animator->AddState("south", 0.127f, olc::AnimatedSprite::PLAY_MODE::LOOP, std::vector<olc::vi2d>{
                                    {0, 0},
                                    {28, 0},
                                    {56, 0},
                                    {84, 0}
                                });
-    Player->Animator->AddState("west", std::vector<olc::vi2d>{
+    Player->Animator->AddState("west", 0.127f, olc::AnimatedSprite::PLAY_MODE::LOOP, std::vector<olc::vi2d>{
                                    {0, 72},
                                    {28, 72},
                                    {56, 72},
@@ -132,6 +145,27 @@ Dungeon::Dungeon()
     
     FireOverlay = new olc::Renderable();
     FireOverlay->Load("res/torch.png");
+    
+    SoundBufferFireLighting.loadFromFile("res/fire_start.wav");
+    SoundFireLighting.setBuffer(SoundBufferFireLighting);
+    SoundFireLighting.setLoop(false);
+    SoundFireLighting.setVolume(50.f);
+    
+    SoundBufferFire.loadFromFile("res/fire.wav");
+    SoundFire.setBuffer(SoundBufferFire);
+    SoundFire.setLoop(true);
+    SoundFire.setVolume(100.f);
+    
+    SoundBufferAmbient.loadFromFile("res/ambient.ogg");
+    SoundAmbient.setBuffer(SoundBufferAmbient);
+    SoundAmbient.setLoop(true);
+    SoundAmbient.play();
+    
+    SoundBufferFootsteps.loadFromFile("res/run.ogg");
+    SoundFootsteps.setBuffer(SoundBufferFootsteps);
+    SoundFootsteps.setLoop(true);
+    SoundFootsteps.setVolume(20.f);
+    
     
 }
 
@@ -283,11 +317,6 @@ void Dungeon::Generate()
     }
 }
 
-void Dungeon::SpawnEntity(Entity* entity)
-{
-    Entities[entity->Coords] = entity;
-}
-
 void Dungeon::Input(olc::PixelGameEngine* engine, float fTime)
 {
     
@@ -295,30 +324,36 @@ void Dungeon::Input(olc::PixelGameEngine* engine, float fTime)
     
     static std::string state = "idle";
     static std::string lastState = "idle";
+    static bool WasMoving = false;
+    bool IsMoving = false;
     
     if (engine->GetKey(olc::W).bHeld)
     {
         Player->Coords.y -= static_cast<float>(TileSize) * (fTime * Player->Speed);
         if (state != "north")
             state = "north";
+        IsMoving = true;
     }
     if (engine->GetKey(olc::A).bHeld)
     {
         Player->Coords.x -= static_cast<float>(TileSize) * (fTime * Player->Speed);
         if (state != "west")
             state = "west";
+        IsMoving = true;
     }
     if (engine->GetKey(olc::S).bHeld)
     {
         Player->Coords.y += static_cast<float>(TileSize) * (fTime * Player->Speed);
         if (state != "south")
             state = "south";
+        IsMoving = true;
     }
     if (engine->GetKey(olc::D).bHeld)
     {
         Player->Coords.x += static_cast<float>(TileSize) * (fTime * Player->Speed);
         if (state != "east")
             state = "east";
+        IsMoving = true;
     }
     
     if (engine->GetKey(olc::W).bHeld && engine->GetKey(olc::A).bHeld)
@@ -327,7 +362,6 @@ void Dungeon::Input(olc::PixelGameEngine* engine, float fTime)
         Player->Coords.x += static_cast<float>(TileSize) * (fTime * (Player->Speed / 3.0f));
         if (state != "west")
             state = "west";
-        
     }
     if (engine->GetKey(olc::W).bHeld && engine->GetKey(olc::D).bHeld)
     {
@@ -352,8 +386,22 @@ void Dungeon::Input(olc::PixelGameEngine* engine, float fTime)
             state = "west";
     }
     
+    if (!WasMoving && IsMoving)
+    {
+        SoundFootsteps.setPlayingOffset(sf::seconds(0.05f));
+        SoundFootsteps.play();
+    }
+    if (WasMoving && !IsMoving)
+    {
+        SoundFootsteps.stop();
+    }
+    WasMoving = IsMoving;
+    
     if (oldCoords == Player->Coords)
+    {
         state = "idle";
+        SoundFootsteps.pause();
+    }
     if (state != lastState)
         Player->Animator->SetState(state);
     lastState = state;
@@ -427,6 +475,31 @@ void Dungeon::Input(olc::PixelGameEngine* engine, float fTime)
 void Dungeon::Update(olc::PixelGameEngine* engine, float fTime)
 {
     ActiveCamera->Update(fTime);
+    
+    if (!HasBegun) return;
+    
+    // spawn enemies
+    if (Enemies.size() == 0)// rand() % 1000 < 1)
+    {
+        Enemy* enemy = new Enemy();
+        enemy->Type = EEntity::Type::Enemy;
+        enemy->Renderable = EnemyRenderable;
+        enemy->Animator = EnemyAnimator;
+        enemy->Coords = { Player->Coords.x + static_cast<float>((rand() % 100) - 50 ), Player->Coords.y + static_cast<float>((rand() % 100) - 50) };
+        
+        enemy->HitBox = new Collider{ 0, 0, 28, 36 };
+        
+        Enemies.push_back(enemy);
+    }
+    
+    olc::vf2d desiredLocation = Player->Coords;
+    for (auto enemy : Enemies)
+    {
+        enemy->Velocity =  static_cast<float>(TileSize) * (fTime * (Player->Speed / 3.0f) * olc::vf2d(desiredLocation - enemy->Coords).norm());
+        
+        enemy->Coords += enemy->Velocity;
+    }
+    
 }
 
 olc::Pixel pixelMultiply(const int x, const int y, const olc::Pixel& pSource, const olc::Pixel& pDest)
@@ -447,7 +520,7 @@ void Dungeon::Draw(olc::PixelGameEngine* engine, float fTime)
     // Entities are always (tilesize / 3) * 2
     
     // Dungeon Layer
-    engine->SetDrawTarget(3);
+    engine->SetDrawTarget(4);
     engine->Clear({38, 36, 40});
     
     engine->SetPixelMode(olc::Pixel::ALPHA);
@@ -456,25 +529,67 @@ void Dungeon::Draw(olc::PixelGameEngine* engine, float fTime)
         engine->DrawPartialDecal({ static_cast<float>((tile.first.x * TileSize) - ActiveCamera->Coords.x), static_cast<float>((tile.first.y * TileSize) - ActiveCamera->Coords.y) },
                                  { static_cast<float>(TileSize), static_cast<float>(TileSize) }, TileSet->Decal(), TileSetDictionary->Dictionary[tile.second->Type], { 16, 16 });
     
-    
     // Entity Layer
-    engine->SetDrawTarget(2);
+    engine->SetDrawTarget(3);
     engine->Clear(olc::BLANK);
     
     // Draw character
     Player->Animator->Draw(fTime, {Player->Coords.x - ActiveCamera->Coords.x, Player->Coords.y - ActiveCamera->Coords.y});
     
+    for (int i = 0; i < Enemies.size(); i++)
+    {
+        _Logger.Debug(i);
+        Enemies[i]->Animator->SetState("idle");
+        Enemies[i]->Animator->Draw(fTime, {Enemies[i]->Coords.x - ActiveCamera->Coords.x, Enemies[i]->Coords.y - ActiveCamera->Coords.y});
+    }
+    
     // Lighting layers
-    engine->SetDrawTarget(1);
+    engine->SetDrawTarget(2);
     engine->Clear(olc::BLANK);
+    
+    static bool WasFireLit = false;
+    static bool HasFireLit = false;
+    static float FireAccumilator = 0.0f;
+    
+    if (engine->GetKey(olc::F).bPressed) IsFireLit = true;
+    
+    if (!IsLightOn && !HasFireLit)
+    {
+        engine->FillRectDecal({0.0f, 0.0f}, {static_cast<float>(engine->ScreenWidth()), static_cast<float>(engine->ScreenHeight())}, olc::Pixel(0,0,0));
+    }
+    
+    if (!IsFireLit) return;
+    
+    // Wait for fire to get going to render
+    if (WasFireLit != IsFireLit)
+    {
+        SoundFireLighting.setPlayingOffset(sf::seconds(0.3f));
+        SoundFireLighting.play();
+    }
+    WasFireLit = true;
+    static bool LastPlayFire = false;
+    static bool PlayFire = false;
+    FireAccumilator += fTime;
+    if (FireAccumilator > 1.4f)
+        PlayFire = true;
+    if (FireAccumilator < 1.4f)
+        return;
+    if (LastPlayFire != PlayFire)
+    {
+        SoundFire.play();
+        LastPlayFire = true;
+        HasFireLit = true;
+    }
+    
+    HasBegun = true;
     
     static std::function<olc::Pixel(const int x, const int y, const olc::Pixel& pSource, const olc::Pixel& pDest)> fPixelMultiply = pixelMultiply;
     
     // loads to make it more chaotic
-    float lightScale = 1.4f + GetNextPerlin(); GetNextPerlin(); GetNextPerlin(); GetNextPerlin(); GetNextPerlin();
+    float lightScale = 1.2f + GetNextPerlin(); GetNextPerlin(); GetNextPerlin(); GetNextPerlin(); GetNextPerlin();
     
-    float lightX = static_cast<float>(Player->Coords.x - ActiveCamera->Coords.x) - ((FireOverlay->Sprite()->width * lightScale) / 2.0f);
-    float lightY = static_cast<float>(Player->Coords.y - ActiveCamera->Coords.y) - ((FireOverlay->Sprite()->height * lightScale) / 2.0f);
+    float lightX = static_cast<float>(Player->Coords.x - ActiveCamera->Coords.x) - ((FireOverlay->Sprite()->width * lightScale) / 2.0f) + static_cast<float>(Player->HitBox->w) / 2.0f;
+    float lightY = static_cast<float>(Player->Coords.y - ActiveCamera->Coords.y) - ((FireOverlay->Sprite()->height * lightScale) / 2.0f) + static_cast<float>(Player->HitBox->h) / 2.0f;
     
     float lightLeft   = lightX + 1.0f;
     float lightRight  = lightX + FireOverlay->Sprite()->width * lightScale - 1.0f;
@@ -511,10 +626,12 @@ Dungeon::~Dungeon()
     delete TileSet;
     for (std::pair<olc::vi2d, Tile*> tile : DungeonTiles)
         delete tile.second;
-    for (std::pair<olc::vi2d, Entity*> entity : Entities)
-        delete entity.second;
-    for (std::pair<olc::vi2d, FixedItem*> entity : FixedItems)
-        delete entity.second;
+    
+    for (auto enemy : Enemies)
+    {
+        delete enemy->HitBox;
+        delete enemy;
+    }
     
     free(perlinSeed);
     free(perlinOutput);

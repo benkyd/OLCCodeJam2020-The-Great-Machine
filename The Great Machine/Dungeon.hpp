@@ -2,8 +2,11 @@
 #define GREATMACHINE_DUNGEON_H_
 
 #include <unordered_map>
+#include <vector>
 
+#include <SFML/Audio.hpp>
 #include "olcPixelGameEngine.hpp"
+#include "olcPGEX_AnimatedSprite.hpp"
 
 #include "Logger.hpp"
 
@@ -11,6 +14,7 @@ class Camera;
 
 class Tile;
 class Entity;
+class Enemy;
 class Playable;
 class FixedItem;
 class TileDictionary;
@@ -22,26 +26,41 @@ class Dungeon
 	Dungeon();
     
 	void Generate();
-	void SpawnEntity(Entity* entity);
     
 	void Input(olc::PixelGameEngine* engine, float fTime);
 	void Update(olc::PixelGameEngine* engine, float fTime);
 	void Draw(olc::PixelGameEngine* engine, float fTime);
     
+    bool HasBegun = false;
+    
     Playable* Player;
 	Camera* ActiveCamera;
     
-	int TileSize = 64;
+    olc::Renderable* EnemyRenderable;
+    olc::AnimatedSprite* EnemyAnimator;
+    std::vector<Enemy*> Enemies;
+    
+    int TileSize = 64;
     
 	int DungeonWidth;
 	int DungeonHeight;
 	std::unordered_map<olc::vi2d, Tile*> DungeonTiles;
-	std::unordered_map<olc::vf2d, Entity*> Entities;
-	std::unordered_map<olc::vf2d, FixedItem*> FixedItems;
     
 	TileDictionary* TileSetDictionary;
 	olc::Renderable* TileSet;
     olc::Renderable* FireOverlay;
+    
+    bool IsFireLit = false;
+    bool IsLightOn = true;
+    sf::SoundBuffer SoundBufferFireLighting;
+    sf::Sound SoundFireLighting;
+    sf::SoundBuffer SoundBufferFire;
+    sf::Sound SoundFire;
+    
+    sf::SoundBuffer SoundBufferAmbient;
+    sf::Sound SoundAmbient;
+    sf::SoundBuffer SoundBufferFootsteps;
+    sf::Sound SoundFootsteps;
     
 	~Dungeon();
     

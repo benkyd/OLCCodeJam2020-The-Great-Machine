@@ -257,6 +257,7 @@ class Logger
     public:
     
 	std::atomic<bool> _IsRunning = false;
+    std::atomic<bool> _Terminate = false;
     
 	std::condition_variable _TaskEnqueued;
 	std::queue<LogEntity*> _LogQueue;

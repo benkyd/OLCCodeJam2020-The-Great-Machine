@@ -15,7 +15,7 @@ bool EntityCollide(Entity* entity, std::vector<Tile*>& nearby, int tileSize, Col
     
     static Logger& _Logger = Logger::getInstance();
     
-    engine->SetDrawTarget(uint8_t(0));
+    engine->SetDrawTarget(1);
     engine->Clear(olc::BLANK);
     
     float entityX = static_cast<float>(entity->Coords.x - entity->TrackingCamera->Coords.x);
@@ -28,12 +28,12 @@ bool EntityCollide(Entity* entity, std::vector<Tile*>& nearby, int tileSize, Col
     int entityTop    = static_cast<int>(entityY);
     int entityBottom = static_cast<int>(entityY + entityH);
     
-    if (ShowDebug)
+    if (ShowCollisionDebug)
         engine->DrawRect(entityX, entityY, entityW, entityH, olc::RED); 
     
     for (auto tile : nearby)
     {
-        if (ShowDebug)
+        if (ShowCollisionDebug)
             engine->DrawRect({ static_cast<int>(static_cast<float>((tile->Coords.x * tileSize) - entity->TrackingCamera->Coords.x)), static_cast<int>(static_cast<float>((tile->Coords.y * tileSize) - entity->TrackingCamera->Coords.y)) }, {tileSize, tileSize}, olc::BLUE);
         
         // return if not collidable
@@ -51,7 +51,7 @@ bool EntityCollide(Entity* entity, std::vector<Tile*>& nearby, int tileSize, Col
         
         bool collision = xOverlaps && yOverlaps;
         
-        if (ShowDebug)
+        if (ShowCollisionDebug)
             engine->FillRect({static_cast<int>(static_cast<float>((tile->Coords.x * tileSize) - entity->TrackingCamera->Coords.x)), static_cast<int>(static_cast<float>((tile->Coords.y * tileSize) - entity->TrackingCamera->Coords.y))}, {tileSize, tileSize}, collision ? olc::RED : olc::BLUE);
         
         if (!collision) continue;
