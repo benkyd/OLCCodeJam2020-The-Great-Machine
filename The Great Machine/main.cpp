@@ -92,24 +92,24 @@ class Game : public olc::PixelGameEngine
                 // TODO: Center these omd
                 SetPixelMode(olc::Pixel::ALPHA);
                 if (_TimeAccumilator > 16.0f)
-                    DrawString((ScreenWidth() / 2) - (7 * 4) * (std::string("the machine has done nothing for me").length() / 2), 40, "the machine has done nothing for me", olc::Pixel(255, 255, 255, static_cast<int>(_DeltaFade1)), 3);
+                    DrawString(15, 40, "the machine has done nothing for me", olc::Pixel(255, 255, 255, static_cast<int>(_DeltaFade1)), 3);
                 if (_TimeAccumilator > 20.0f)
-                    DrawString((ScreenWidth() / 2) - (7 * 4) * (std::string("the machine has left me with nothing").length() / 2), 120, "the machine has left me with nothing", olc::Pixel(255, 255, 255, static_cast<int>(_DeltaFade1)), 3);
+                    DrawString(15, 120, "the machine has left me with nothing", olc::Pixel(255, 255, 255, static_cast<int>(_DeltaFade1)), 3);
                 if (_TimeAccumilator > 23.0f)
                     
                     DrawString((ScreenWidth() / 2) - (7 * 7) * (std::string("i am nothing").length() / 2), 300, "i am nothing", olc::Pixel(255, 255, 255, static_cast<int>(_DeltaFade1)), 6);
-                if (_TimeAccumilator > 25.0f)
-                    DrawString((ScreenWidth() / 2) - (7 * 3) * (std::string("your demons can't survive the dark").length() / 2), 650, "your demons can't survive the dark", olc::Pixel(255, 255, 255, static_cast<int>(_DeltaFade1)), 2);
+                if (_TimeAccumilator > 24.0f)
+                    DrawString(15, 650, "your demons can't survive the dark", olc::Pixel(255, 255, 255, static_cast<int>(_DeltaFade1)), 2);
             }
             
         }
         
         if (_TimeAccumilator > 26.0f)
         {
+            bruh:
             _Dungeon->IsFireLit = true;
         }
         
-        bruh:
         
         _Dungeon->Input(this, fTime);
         

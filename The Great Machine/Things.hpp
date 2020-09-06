@@ -132,7 +132,7 @@ class Playable : public Entity
 class Enemy : public Entity
 {
     public:
-    olc::vf2d Velocity = { 0.0f, 0.0f };
+    olc::vf2d dxdy = { 0.0f, 0.0f };
 };
 
 

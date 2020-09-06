@@ -472,6 +472,13 @@ void Dungeon::Input(olc::PixelGameEngine* engine, float fTime)
     lastTile = currentTile;
 }
 
+template<typename T>
+float vecDistance(T v1, T v2)
+{
+    return sqrt(pow(v2.x - v1.x, 2.0f) + pow(v2.y - v1.y, 2.0f) * 1.0f);
+}
+
+
 void Dungeon::Update(olc::PixelGameEngine* engine, float fTime)
 {
     ActiveCamera->Update(fTime);
@@ -479,25 +486,36 @@ void Dungeon::Update(olc::PixelGameEngine* engine, float fTime)
     if (!HasBegun) return;
     
     // spawn enemies
-    if (Enemies.size() == 0)// rand() % 1000 < 1)
+    if (rand() % 100 < 1)
     {
         Enemy* enemy = new Enemy();
         enemy->Type = EEntity::Type::Enemy;
         enemy->Renderable = EnemyRenderable;
         enemy->Animator = EnemyAnimator;
-        enemy->Coords = { Player->Coords.x + static_cast<float>((rand() % 100) - 50 ), Player->Coords.y + static_cast<float>((rand() % 100) - 50) };
+        enemy->Coords = { static_cast<float>(((float)rand() / (float)RAND_MAX) * 1280.0f), static_cast<float>(((float)rand() / (float)RAND_MAX) * 720.0f) };
+        enemy->dxdy = { static_cast<float>(rand() % 10 - 5), static_cast<float>(rand() % 10 - 5) };
         
-        enemy->HitBox = new Collider{ 0, 0, 28, 36 };
+        float distanceFromPlayer = vecDistance(Player->Coords, enemy->Coords);
+        _Logger.Debug(enemy->Coords.x, " ", enemy->Coords.y); 
+        if (distanceFromPlayer > 100)
+        {
+            enemy->HitBox = new Collider{ 0, 0, 28, 36 };
+            Enemies.push_back(enemy);
+        }
+        else
+        {
+            delete enemy;
+        }
         
-        Enemies.push_back(enemy);
+        
     }
     
     olc::vf2d desiredLocation = Player->Coords;
     for (auto enemy : Enemies)
     {
-        enemy->Velocity =  static_cast<float>(TileSize) * (fTime * (Player->Speed / 1.5f) * olc::vf2d(desiredLocation - enemy->Coords).norm());
+        enemy->dxdy =  static_cast<float>(TileSize) * (fTime * (Player->Speed / 1.5f) * olc::vf2d(desiredLocation - enemy->Coords).norm());
         
-        enemy->Coords += enemy->Velocity;
+        enemy->Coords += enemy->dxdy;
     }
     
 }
@@ -610,6 +628,12 @@ void Dungeon::Draw(olc::PixelGameEngine* engine, float fTime)
     engine->FillRectDecal({0.0f, lightBottom}, {static_cast<float>(engine->ScreenWidth()), static_cast<float>(engine->ScreenHeight()) - lightBottom}, olc::BLACK);
     // left
     engine->FillRectDecal({0.0f, 0.0f}, {lightLeft, static_cast<float>(engine->ScreenHeight())}, olc::BLACK);
+    
+    // UI Layer
+    engine->SetDrawTarget(1);
+    engine->Clear(olc::BLANK);
+    
+    engine->DrawString({15, 15}, std::to_string(Enemies.size()), olc::WHITE, 5);
     
 }
 
