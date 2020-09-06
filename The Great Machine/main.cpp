@@ -60,7 +60,7 @@ class Game : public olc::PixelGameEngine
         SetDrawTarget(uint8_t(0));
         Clear(olc::BLANK);
         
-        goto bruh;
+        // goto bruh;
         
         if (_TimeAccumilator < 6.0f)
         {

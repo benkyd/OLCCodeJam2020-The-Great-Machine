@@ -201,7 +201,7 @@ void Dungeon::Generate()
     
     int directionChance = 5;
     int roomChance = 5;
-    int dungeonMinSize = 3000;
+    int dungeonMinSize = 5000;
     
     struct Agent
     {
@@ -571,6 +571,7 @@ void Dungeon::Update(olc::PixelGameEngine* engine, float fTime)
     if(Enemies.size() == 0)
     {
         HasWon = true;
+        _Logger.Info("Won, health ", Player->Life);
         return;
     }
 }
